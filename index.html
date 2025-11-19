@@ -457,6 +457,93 @@
             }
         }
         
+        /* User Dropdown Styles */
+        .navbar .dropdown {
+            position: relative;
+        }
+        
+        .navbar .dropdown-menu {
+            z-index: 1050;
+            min-width: 150px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.15);
+        }
+        
+        .navbar .dropdown-menu-end {
+            right: 0;
+            left: auto;
+        }
+        
+        .navbar .dropdown-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .navbar .dropdown-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .navbar .dropdown-item i {
+            width: 20px;
+            text-align: center;
+        }
+        
+        /* Ensure dropdown is clickable and visible */
+        .navbar .dropdown-toggle,
+        .navbar #userDropdown {
+            cursor: pointer;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .navbar .dropdown-toggle:focus,
+        .navbar .dropdown-toggle:active,
+        .navbar #userDropdown:focus,
+        .navbar #userDropdown:active {
+            outline: none;
+            box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
+        }
+        
+        /* Remove dropdown arrow/caret completely */
+        .navbar #userDropdown::after,
+        .navbar #userDropdown::before {
+            display: none !important;
+            content: none !important;
+        }
+        
+        .navbar #userDropdown.dropdown-toggle::after,
+        .navbar #userDropdown.dropdown-toggle::before {
+            display: none !important;
+            content: none !important;
+        }
+        
+        /* Remove any Bootstrap caret */
+        .navbar #userDropdown .caret,
+        .navbar #userDropdown .dropdown-toggle::after {
+            display: none !important;
+        }
+        
+        /* Ensure dropdown menu is always visible and clickable */
+        .navbar .dropdown-menu.show {
+            display: block !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            pointer-events: auto !important;
+        }
+        
+        /* Make dropdown items more touch-friendly */
+        .navbar .dropdown-item {
+            -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+            touch-action: manipulation;
+        }
+        
+        /* Prevent dropdown from being hidden */
+        .navbar .dropdown-menu {
+            pointer-events: auto;
+            will-change: transform, opacity;
+        }
+        
         /* Mobile responsiveness */
         @media (max-width: 768px) {
             .navbar-logo {
@@ -475,6 +562,47 @@
             /* Mobile company name adjustments */
             .company-name {
                 font-size: 0.9rem;
+            }
+            
+            /* Mobile user menu fixes */
+            .navbar #userDropdown {
+                font-size: 0.85rem;
+                padding: 6px 12px;
+                -webkit-tap-highlight-color: transparent;
+                touch-action: manipulation;
+            }
+            
+            .navbar #logoutBtn {
+                font-size: 0.85rem;
+                padding: 6px 12px;
+                min-height: 44px; /* Minimum touch target size */
+                -webkit-tap-highlight-color: rgba(220, 53, 69, 0.2);
+                touch-action: manipulation;
+            }
+            
+            .navbar .user-menu-container {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+        }
+        
+        /* Fix for small screens */
+        @media (max-width: 576px) {
+            .navbar .dropdown-menu {
+                min-width: 160px;
+                font-size: 0.9rem;
+            }
+            
+            .navbar #userDropdown {
+                font-size: 0.8rem;
+                padding: 5px 10px;
+            }
+            
+            #currentUserDisplay {
+                max-width: 100px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
             }
         }
         
@@ -1012,18 +1140,23 @@
             flex-direction: column;
             align-items: stretch;
             width: 100%;
+            min-width: 0;
+            overflow: visible;
         }
         
         /* Horizontal Layout for Main Branch Cards */
         .branch-main-kpis .branch-kpi-item {
             flex-direction: row;
             align-items: center;
+            min-width: 0;
         }
         
         .branch-main-kpis .branch-kpi-label {
             justify-content: flex-start;
             text-align: left;
             border-radius: 8px 0 0 8px;
+            flex: 0 1 auto;
+            min-width: 0;
         }
         
         .branch-main-kpis .branch-kpi-value {
@@ -1031,36 +1164,50 @@
             justify-content: flex-end;
             text-align: right;
             border-radius: 0 8px 8px 0;
+            flex: 1 1 auto;
+            min-width: 0;
+            overflow: visible;
         }
         
         .branch-kpi-item .branch-kpi-label,
         .branch-kpi-item .branch-kpi-value {
             display: flex;
             align-items: center;
-            padding: 12px 16px;
+            padding: clamp(8px, 1.5vw, 16px) clamp(10px, 2vw, 20px);
+            min-width: 0;
+            flex: 1 1 auto;
+            overflow: visible;
         }
         
         /* Reduced padding for category details (vertical layout only) */
         .card-body:not(:has(.branch-main-kpis)) .branch-kpi-label,
         .card-body:not(:has(.branch-main-kpis)) .branch-kpi-value {
-            padding: 8px 12px !important;
+            padding: clamp(6px, 1vw, 12px) clamp(8px, 1.5vw, 16px) !important;
         }
         
         .branch-kpi-label {
-            font-size: 0.85rem;
+            font-size: clamp(0.75rem, 1.5vw, 0.85rem);
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.8px;
             gap: 6px;
             justify-content: center;
             text-align: center;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
         }
         
         .branch-kpi-value {
-            font-size: 1.05rem;
+            font-size: clamp(0.95rem, 2vw, 1.25rem);
             font-weight: 700;
             text-align: center;
             justify-content: center;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            white-space: normal;
+            line-height: 1.3;
+            min-height: 1.5em;
         }
         
         /* Color coding with backgrounds */
@@ -1442,6 +1589,33 @@
             }
         }
         
+        /* Zoom and Scale Responsive Fixes - Ensures numbers display properly when zoomed out */
+        @media (max-width: 1920px) {
+            .branch-kpi-value {
+                font-size: clamp(0.9rem, 1.8vw, 1.3rem) !important;
+                line-height: 1.4 !important;
+                word-wrap: break-word !important;
+                overflow-wrap: break-word !important;
+                white-space: normal !important;
+            }
+            
+            .branch-kpi-label {
+                font-size: clamp(0.75rem, 1.5vw, 0.9rem) !important;
+                word-wrap: break-word !important;
+                overflow-wrap: break-word !important;
+            }
+            
+            .card-body {
+                overflow: visible !important;
+                word-wrap: break-word !important;
+            }
+            
+            .branch-kpi-item {
+                overflow: visible !important;
+                min-width: 0 !important;
+            }
+        }
+        
         /* Responsive Design for Mobile */
         @media (max-width: 768px) {
             /* Reduce card body padding for better fit on mobile */
@@ -1450,14 +1624,20 @@
             }
             
             .branch-kpi-label {
-                font-size: 0.75rem;
-                padding: 8px 10px;
+                font-size: clamp(0.7rem, 2vw, 0.85rem);
+                padding: clamp(6px, 1.5vw, 12px) clamp(8px, 2vw, 16px);
                 gap: 3px;
+                word-wrap: break-word;
+                overflow-wrap: break-word;
             }
             
             .branch-kpi-value {
-                font-size: 0.9rem;
-                padding: 8px 10px;
+                font-size: clamp(0.85rem, 2.5vw, 1.1rem);
+                padding: clamp(6px, 1.5vw, 12px) clamp(8px, 2vw, 16px);
+                word-wrap: break-word;
+                overflow-wrap: break-word;
+                white-space: normal;
+                line-height: 1.4;
             }
             
             .branch-kpi-label i {
@@ -4332,13 +4512,13 @@
                     </span>
                 </a>
                 <div class="ms-auto d-flex align-items-center">
-                    <div class="dropdown">
-                        <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <div class="user-menu-container">
+                        <button class="btn btn-sm btn-outline-light" type="button" id="userDropdown">
                             <i class="fas fa-user-circle me-1"></i> <span id="currentUserDisplay">Admin</span>
                         </button>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                            <li><a class="dropdown-item" href="#" id="logoutBtn"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
-                        </ul>
+                        <button class="btn btn-sm btn-danger" type="button" id="logoutBtn" style="display: none; margin-left: 8px;">
+                            <i class="fas fa-sign-out-alt me-1"></i>Logout
+                        </button>
                     </div>
                 </div>
             </div>
@@ -9209,10 +9389,63 @@
                 this.classList.remove('active');
             });
             
-            // Logout button
-            document.getElementById('logoutBtn').addEventListener('click', function(e) {
-                e.preventDefault();
-                logout();
+            // Logout button - Ensure it works on all devices
+            // User dropdown button - Toggle logout button visibility
+            const userDropdown = document.getElementById('userDropdown');
+            const logoutBtn = document.getElementById('logoutBtn');
+            
+            if (userDropdown && logoutBtn) {
+                // Toggle logout button when user button is clicked
+                userDropdown.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // Toggle logout button visibility
+                    if (logoutBtn.style.display === 'none' || !logoutBtn.style.display) {
+                        logoutBtn.style.display = 'inline-block';
+                    } else {
+                        logoutBtn.style.display = 'none';
+                    }
+                });
+                
+                // Handle touch events for mobile
+                userDropdown.addEventListener('touchend', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    if (logoutBtn.style.display === 'none' || !logoutBtn.style.display) {
+                        logoutBtn.style.display = 'inline-block';
+                    } else {
+                        logoutBtn.style.display = 'none';
+                    }
+                });
+            }
+            
+            // Logout button - Log out when clicked
+            if (logoutBtn) {
+                // Handle click event
+                logoutBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    logout();
+                });
+                
+                // Handle touch events for mobile devices
+                logoutBtn.addEventListener('touchend', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    logout();
+                });
+            }
+            
+            // Hide logout button when clicking outside
+            document.addEventListener('click', function(e) {
+                if (logoutBtn && userDropdown) {
+                    const userMenuContainer = userDropdown.closest('.user-menu-container');
+                    if (userMenuContainer && !userMenuContainer.contains(e.target)) {
+                        logoutBtn.style.display = 'none';
+                    }
+                }
             });
             
             // Navigation
