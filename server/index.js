@@ -96,6 +96,7 @@ const corsOptions = {
     // Add your production domains here made by wasi
     const allowedOrigins = [
       'https://www.dwatson.online',
+       'https://shopmodule-9c27ee49e041.herokuapp.com',
       'https://dwatson-db-902c7d197f9e.herokuapp.com'
     ];
     
