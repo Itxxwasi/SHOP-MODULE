@@ -16460,6 +16460,13 @@ sortedBranches.forEach(data => {
                 branchNameHeading.style.display = 'none';
             }
             
+            // Calculate grand totals across all branches and departments
+            let grandTotalGrossSale = 0;
+            let grandTotalDiscount = 0;
+            let grandTotalReturn = 0;
+            let grandTotalGST = 0;
+            let grandTotalNetSale = 0;
+            
             // Display data grouped by branch
             sortedBranches.forEach((branch, branchIndex) => {
                 const departments = Object.values(branch.departments);
@@ -16486,6 +16493,13 @@ sortedBranches.forEach(data => {
                     const saleValue = dept.grossSale - dept.discountAmount - dept.returnAmount;
                     const dailyAverage = numberOfDays > 0 ? dept.netSale / numberOfDays : 0;
                     
+                    // Accumulate totals
+                    grandTotalGrossSale += dept.grossSale;
+                    grandTotalDiscount += dept.discountAmount;
+                    grandTotalReturn += dept.returnAmount;
+                    grandTotalGST += dept.gst;
+                    grandTotalNetSale += dept.netSale;
+                    
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${dept.name}</td>
@@ -16508,6 +16522,29 @@ sortedBranches.forEach(data => {
                     tableBody.appendChild(spacingRow);
                 }
             });
+            
+            // Add grand total row if there's data
+            if (sortedBranches.length > 0 && grandTotalGrossSale > 0) {
+                const grandTotalDiscountPercent = grandTotalGrossSale > 0 ? (grandTotalDiscount / grandTotalGrossSale * 100) : 0;
+                const grandTotalSaleValue = grandTotalGrossSale - grandTotalDiscount - grandTotalReturn;
+                const grandTotalDailyAverage = numberOfDays > 0 ? grandTotalNetSale / numberOfDays : 0;
+                
+                const grandTotalRow = document.createElement('tr');
+                grandTotalRow.style.backgroundColor = '#f8f9fa';
+                grandTotalRow.style.fontWeight = '700';
+                grandTotalRow.innerHTML = `
+                    <td style="font-weight: 700; font-size: 1.1em;">Grand Total</td>
+                    <td class="text-end" style="font-weight: 700; font-size: 1.1em;">${grandTotalGrossSale.toLocaleString()}</td>
+                    <td class="text-end" style="font-weight: 700; font-size: 1.1em;">${grandTotalDiscount.toLocaleString()}</td>
+                    <td class="text-end" style="font-weight: 700; font-size: 1.1em;">${grandTotalDiscountPercent.toFixed(2)}%</td>
+                    <td class="text-end" style="font-weight: 700; font-size: 1.1em;">${grandTotalReturn.toLocaleString()}</td>
+                    <td class="text-end" style="font-weight: 700; font-size: 1.1em;">${grandTotalSaleValue.toLocaleString()}</td>
+                    <td class="text-end" style="font-weight: 700; font-size: 1.1em;">${grandTotalGST.toLocaleString()}</td>
+                    <td class="text-end" style="font-weight: 700; font-size: 1.1em; color: #2c6e8a;">${grandTotalNetSale.toLocaleString()}</td>
+                    <td class="text-end" style="font-weight: 700; font-size: 1.1em;">${Math.round(grandTotalDailyAverage).toLocaleString()}</td>
+                `;
+                tableBody.appendChild(grandTotalRow);
+            }
             
             if (sortedBranches.length === 0) {
                 tableBody.innerHTML = '<tr><td colspan="9" class="text-center text-muted py-4"><i class="fas fa-info-circle me-2"></i>No data available for the selected filters</td></tr>';
