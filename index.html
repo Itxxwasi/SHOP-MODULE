@@ -16263,8 +16263,10 @@
                 const card = document.createElement('div');
                 card.className = 'col-lg-3 col-md-6 mb-4'; // Changed to col-lg-3 for 4 columns
                 
-                const canEditSale = (appData.currentUser?.permissions || []).includes('sales-edit');
-                const canDeleteSale = (appData.currentUser?.permissions || []).includes('sales-delete');
+                const permissions = appData.currentUser?.permissions || [];
+                const isAdmin = permissions.includes('admin');
+                const canEditSale = isAdmin || permissions.includes('sales-edit');
+                const canDeleteSale = isAdmin || permissions.includes('sales-delete');
                 card.innerHTML = `
                     <div class="category-card">
                         <div class="category-header">
@@ -17673,8 +17675,10 @@ sortedBranches.forEach(data => {
             const container = document.getElementById('salesInvoicesContainer');
             container.innerHTML = '';
             
-            const canEditSale = (appData.currentUser?.permissions || []).includes('sales-edit');
-            const canDeleteSale = (appData.currentUser?.permissions || []).includes('sales-delete');
+            const permissions = appData.currentUser?.permissions || [];
+            const isAdmin = permissions.includes('admin');
+            const canEditSale = isAdmin || permissions.includes('sales-edit');
+            const canDeleteSale = isAdmin || permissions.includes('sales-delete');
             sales.forEach(sale => {
                 const card = document.createElement('div');
                 card.className = 'col-md-6 col-lg-4 mb-3';
@@ -17848,8 +17852,10 @@ sortedBranches.forEach(data => {
             const tableBody = document.getElementById('salesListTableBody');
             tableBody.innerHTML = '';
             
-            const canEditSale = (appData.currentUser?.permissions || []).includes('sales-edit');
-            const canDeleteSale = (appData.currentUser?.permissions || []).includes('sales-delete');
+            const permissions = appData.currentUser?.permissions || [];
+            const isAdmin = permissions.includes('admin');
+            const canEditSale = isAdmin || permissions.includes('sales-edit');
+            const canDeleteSale = isAdmin || permissions.includes('sales-delete');
             
             sales.forEach(sale => {
                 const row = document.createElement('tr');
@@ -19100,7 +19106,9 @@ sortedBranches.forEach(data => {
         
         // Edit sale
         function editSale(id) {
-            if (!(appData.currentUser?.permissions || []).includes('sales-edit')) {
+            const permissions = appData.currentUser?.permissions || [];
+            const isAdmin = permissions.includes('admin');
+            if (!isAdmin && !permissions.includes('sales-edit')) {
                 showNotification("You don't have permission to edit sales", 'error');
                 return;
             }
@@ -19163,7 +19171,9 @@ sortedBranches.forEach(data => {
         
         // Delete sale
         function deleteSale(id) {
-            if (!(appData.currentUser?.permissions || []).includes('sales-delete')) {
+            const permissions = appData.currentUser?.permissions || [];
+            const isAdmin = permissions.includes('admin');
+            if (!isAdmin && !permissions.includes('sales-delete')) {
                 showNotification("You don't have permission to delete sales", 'error');
                 return;
             }
@@ -20695,8 +20705,10 @@ sortedBranches.forEach(data => {
                 return;
             }
             
-            const canEditSale = (appData.currentUser?.permissions || []).includes('sales-edit');
-            const canDeleteSale = (appData.currentUser?.permissions || []).includes('sales-delete');
+            const permissions = appData.currentUser?.permissions || [];
+            const isAdmin = permissions.includes('admin');
+            const canEditSale = isAdmin || permissions.includes('sales-edit');
+            const canDeleteSale = isAdmin || permissions.includes('sales-delete');
             
             sales.forEach(sale => {
                 const card = document.createElement('div');
@@ -20765,8 +20777,10 @@ sortedBranches.forEach(data => {
                 return;
             }
             
-            const canEditSale = (appData.currentUser?.permissions || []).includes('sales-edit');
-            const canDeleteSale = (appData.currentUser?.permissions || []).includes('sales-delete');
+            const permissions = appData.currentUser?.permissions || [];
+            const isAdmin = permissions.includes('admin');
+            const canEditSale = isAdmin || permissions.includes('sales-edit');
+            const canDeleteSale = isAdmin || permissions.includes('sales-delete');
             
             sales.forEach(sale => {
                 const row = document.createElement('tr');
@@ -20792,7 +20806,9 @@ sortedBranches.forEach(data => {
         
         // Edit Department Sale - Make globally accessible
         window.editDeptSale = function(id) {
-            if (!(appData.currentUser?.permissions || []).includes('sales-edit')) {
+            const permissions = appData.currentUser?.permissions || [];
+            const isAdmin = permissions.includes('admin');
+            if (!isAdmin && !permissions.includes('sales-edit')) {
                 showNotification("You don't have permission to edit department sales", 'error');
                 return;
             }
@@ -20950,7 +20966,9 @@ sortedBranches.forEach(data => {
         
         // Delete Department Sale - Make globally accessible
         window.deleteDeptSale = function(id) {
-            if (!(appData.currentUser?.permissions || []).includes('sales-delete')) {
+            const permissions = appData.currentUser?.permissions || [];
+            const isAdmin = permissions.includes('admin');
+            if (!isAdmin && !permissions.includes('sales-delete')) {
                 showNotification("You don't have permission to delete department sales", 'error');
                 return;
             }
