@@ -1313,6 +1313,20 @@
             border-radius: 0 0 8px 8px;
         }
         
+        .kpi-discount-value-label,
+        .kpi-discount-value-value {
+            color: #fff;
+            background: transparent;
+        }
+        
+        .kpi-discount-value-label {
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .kpi-discount-value-value {
+            border-radius: 0 0 8px 8px;
+        }
+        
         .kpi-sale-value-label,
         .kpi-sale-value-value {
             color: #fff;
@@ -1376,6 +1390,10 @@
         
         .branch-kpi-item:has(.kpi-discount-label) {
             background: linear-gradient(135deg, #ff9800 0%, #ffc107 100%);
+        }
+        
+        .branch-kpi-item:has(.kpi-discount-value-label) {
+            background: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%);
         }
         
         .branch-kpi-item:has(.kpi-sale-value-label) {
@@ -4997,9 +5015,10 @@
                                                             <th class="text-center">Rank</th>
                                                             <th>Branch</th>
                                                             <th class="text-end">Gross Sale</th>
+                                                            <th class="text-end">Discount Value</th>
                                                             <th class="text-end">Discount %</th>
-                                                            <th class="text-end">Sale Value</th>
                                                             <th class="text-end">Return</th>
+                                                            <th class="text-end">Sale Value</th>
                                                             <th class="text-end">GST</th>
                                                             <th class="text-end">Net Sale</th>
                                                             <th class="text-end">Daily Sale Average</th>
@@ -5007,7 +5026,7 @@
                                                     </thead>
                                                     <tbody id="shopBranchWiseComparisonTableBody">
                                                         <tr>
-                                                            <td colspan="9" class="text-center text-muted py-4">
+                                                            <td colspan="10" class="text-center text-muted py-4">
                                                                 <i class="fas fa-spinner fa-spin me-2"></i>
                                                                 Loading branch comparison data...
                                                             </td>
@@ -6418,6 +6437,18 @@
                     <button class="report-tab" data-tab="payment-reports">
                         <i class="fas fa-file-invoice-dollar me-2"></i>Payment Reports
                     </button>
+                    <button class="report-tab" data-tab="department-wise-report">
+                        <i class="fas fa-building me-2"></i>Department-Wise Report
+                    </button>
+                    <button class="report-tab" data-tab="sub-department-wise-report">
+                        <i class="fas fa-sitemap me-2"></i>Sub-Department-Wise Report
+                    </button>
+                    <button class="report-tab" data-tab="department-wise-sale-comparison">
+                        <i class="fas fa-chart-pie me-2"></i>Department-Wise Sale Comparison
+                    </button>
+                    <button class="report-tab" data-tab="branch-wise-sale-comparison">
+                        <i class="fas fa-chart-line me-2"></i>Branch-Wise Sale Comparison
+                    </button>
                 </div>
                 
                 <!-- Tab 1: Sales Report -->
@@ -6824,6 +6855,442 @@
                     </div>
                 </div>
                 <!-- End Tab 4: Payment Reports -->
+                
+                <!-- Tab 5: Department-Wise Report -->
+                <div id="tab-department-wise-report" class="report-tab-content">
+                    <!-- Filters Section -->
+                    <div class="card mb-4 no-print">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-filter me-2"></i>Department-Wise Report Filters
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">Branch</label>
+                                    <select class="form-select" id="deptWiseReportBranch">
+                                        <option value="">All Branches</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Department</label>
+                                    <select class="form-select" id="deptWiseReportDepartment">
+                                        <option value="">All Departments</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">From Date</label>
+                                    <input type="date" class="form-control" id="deptWiseReportDateFrom">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">To Date</label>
+                                    <input type="date" class="form-control" id="deptWiseReportDateTo">
+                                </div>
+                                <div class="col-md-2 d-flex align-items-end">
+                                    <button class="btn btn-primary w-100" id="generateDeptWiseReportBtn">
+                                        <i class="fas fa-file-alt me-2"></i>Generate Report
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Summary Cards -->
+                    <div class="row mb-4" id="deptWiseSummaryCards">
+                        <div class="col-md-3">
+                            <div class="card text-center border-0 shadow-sm" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                                <div class="card-body">
+                                    <h6 class="text-white mb-2">Gross Sale</h6>
+                                    <h3 class="text-white mb-0" id="deptWiseSummaryGrossSale">0</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-center border-0 shadow-sm" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);">
+                                <div class="card-body">
+                                    <h6 class="text-white mb-2">Total Discount</h6>
+                                    <h3 class="text-white mb-0" id="deptWiseSummaryTotalDiscount">0</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-center border-0 shadow-sm" style="background: linear-gradient(135deg, #CF2A2A 0%, #ff6b6b 100%);">
+                                <div class="card-body">
+                                    <h6 class="text-white mb-2">Total Return</h6>
+                                    <h3 class="text-white mb-0" id="deptWiseSummaryTotalReturn">0</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-center border-0 shadow-sm" style="background: linear-gradient(135deg, #136F63 0%, #17a2b8 100%);">
+                                <div class="card-body">
+                                    <h6 class="text-white mb-2">Total GST</h6>
+                                    <h3 class="text-white mb-0" id="deptWiseSummaryTotalGST">0</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Net Sale Summary Card -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <div class="card text-center border-0 shadow-sm" style="background: linear-gradient(135deg, #4D4D4D 0%, #6c757d 100%);">
+                                <div class="card-body">
+                                    <h6 class="text-white mb-2">Net Sale</h6>
+                                    <h2 class="text-white mb-0" id="deptWiseSummaryNetSale">0</h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Department-Wise Report Table -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div>
+                                    <h5 class="card-title mb-0">Department-Wise Report</h5>
+                                    <div id="deptWiseReportSubtitle" class="text-muted small mt-1" style="display: none;"></div>
+                                </div>
+                                <button class="btn btn-success no-print" id="printDeptWiseReportBtn">
+                                    <i class="fas fa-print me-2"></i>Print Report
+                                </button>
+                            </div>
+                            <h4 id="deptWiseReportBranchName" class="text-center mt-2 mb-3" style="display: none; font-weight: 600;"></h4>
+                            
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Department</th>
+                                            <th class="text-end">Gross Sale</th>
+                                            <th class="text-end">Discount Value</th>
+                                            <th class="text-end">Discount %</th>
+                                            <th class="text-end">Return</th>
+                                            <th class="text-end">Sale Value</th>
+                                            <th class="text-end">GST</th>
+                                            <th class="text-end">Net Sale</th>
+                                            <th class="text-end">Daily Sale Average</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="deptWiseReportTableBody">
+                                        <tr>
+                                            <td colspan="9" class="text-center text-muted py-4">
+                                                <i class="fas fa-info-circle me-2"></i>
+                                                Click "Generate Report" to view department sales data
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- End Tab 5: Department-Wise Report -->
+                
+                <!-- Tab 6: Sub-Department-Wise Report -->
+                <div id="tab-sub-department-wise-report" class="report-tab-content">
+                    <!-- Filters Section -->
+                    <div class="card mb-4 no-print">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-filter me-2"></i>Sub-Department-Wise Report Filters
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">Branch</label>
+                                    <select class="form-select" id="subDeptWiseReportBranch">
+                                        <option value="">All Branches</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Department</label>
+                                    <select class="form-select" id="subDeptWiseReportDepartment">
+                                        <option value="">All Departments</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Sub-Department</label>
+                                    <select class="form-select" id="subDeptWiseReportSubDepartment">
+                                        <option value="">All Sub-Departments</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">From Date</label>
+                                    <input type="date" class="form-control" id="subDeptWiseReportDateFrom">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">To Date</label>
+                                    <input type="date" class="form-control" id="subDeptWiseReportDateTo">
+                                </div>
+                                <div class="col-md-2 d-flex align-items-end">
+                                    <button class="btn btn-primary w-100" id="generateSubDeptWiseReportBtn">
+                                        <i class="fas fa-file-alt me-2"></i>Generate Report
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Summary Cards -->
+                    <div class="row mb-4" id="subDeptWiseSummaryCards">
+                        <div class="col-md-3">
+                            <div class="card text-center border-0 shadow-sm" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                                <div class="card-body">
+                                    <h6 class="text-white mb-2">Gross Sale</h6>
+                                    <h3 class="text-white mb-0" id="subDeptWiseSummaryGrossSale">0</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-center border-0 shadow-sm" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);">
+                                <div class="card-body">
+                                    <h6 class="text-white mb-2">Total Discount</h6>
+                                    <h3 class="text-white mb-0" id="subDeptWiseSummaryTotalDiscount">0</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-center border-0 shadow-sm" style="background: linear-gradient(135deg, #CF2A2A 0%, #ff6b6b 100%);">
+                                <div class="card-body">
+                                    <h6 class="text-white mb-2">Total Return</h6>
+                                    <h3 class="text-white mb-0" id="subDeptWiseSummaryTotalReturn">0</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-center border-0 shadow-sm" style="background: linear-gradient(135deg, #136F63 0%, #17a2b8 100%);">
+                                <div class="card-body">
+                                    <h6 class="text-white mb-2">Total GST</h6>
+                                    <h3 class="text-white mb-0" id="subDeptWiseSummaryTotalGST">0</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Net Sale Summary Card -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <div class="card text-center border-0 shadow-sm" style="background: linear-gradient(135deg, #4D4D4D 0%, #6c757d 100%);">
+                                <div class="card-body">
+                                    <h6 class="text-white mb-2">Net Sale</h6>
+                                    <h2 class="text-white mb-0" id="subDeptWiseSummaryNetSale">0</h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Sub-Department-Wise Report Table -->
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div>
+                                    <h5 class="card-title mb-0">Sub-Department-Wise Report</h5>
+                                    <div id="subDeptWiseReportSubtitle" class="text-muted small mt-1" style="display: none;"></div>
+                                </div>
+                                <button class="btn btn-success no-print" id="printSubDeptWiseReportBtn">
+                                    <i class="fas fa-print me-2"></i>Print Report
+                                </button>
+                            </div>
+                            <h4 id="subDeptWiseReportBranchName" class="text-center mt-2 mb-3" style="display: none; font-weight: 600;"></h4>
+                            
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Sub-Department</th>
+                                            <th>Department</th>
+                                            <th>Branch</th>
+                                            <th class="text-end">Gross Sale</th>
+                                            <th class="text-end">Discount</th>
+                                            <th class="text-end">Return</th>
+                                            <th class="text-end">Sale Value</th>
+                                            <th class="text-end">GST</th>
+                                            <th class="text-end">Net Sale</th>
+                                            <th class="text-end">Daily Sale Average</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="subDeptWiseReportTableBody">
+                                        <tr>
+                                            <td colspan="10" class="text-center text-muted py-4">
+                                                <i class="fas fa-info-circle me-2"></i>
+                                                Click "Generate Report" to view sub-department sales data
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- End Tab 6: Sub-Department-Wise Report -->
+                
+                <!-- Tab 7: Department-Wise Sale Comparison -->
+                <div id="tab-department-wise-sale-comparison" class="report-tab-content">
+                    <!-- Filters Section -->
+                    <div class="card mb-4 no-print">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-filter me-2"></i>Department-Wise Sale Comparison Filters
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">Branch</label>
+                                    <select class="form-select" id="deptComparisonReportBranch">
+                                        <option value="">All Branches</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Department</label>
+                                    <select class="form-select" id="deptComparisonReportDepartment">
+                                        <option value="">All Departments</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">From Date</label>
+                                    <input type="date" class="form-control" id="deptComparisonReportDateFrom">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">To Date</label>
+                                    <input type="date" class="form-control" id="deptComparisonReportDateTo">
+                                </div>
+                                <div class="col-md-2 d-flex align-items-end">
+                                    <button class="btn btn-primary w-100" id="generateDeptComparisonReportBtn">
+                                        <i class="fas fa-chart-pie me-2"></i>Generate Report
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Comparison Table -->
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div>
+                                    <h5 class="card-title mb-0">Department-Wise Sale Comparison</h5>
+                                    <div id="deptComparisonReportSubtitle" class="text-muted small mt-1" style="display: none;"></div>
+                                </div>
+                                <button class="btn btn-success no-print" id="printDeptComparisonReportBtn">
+                                    <i class="fas fa-print me-2"></i>Print Report
+                                </button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Rank</th>
+                                            <th>Department</th>
+                                            <th>Branch</th>
+                                            <th class="text-end">Gross Sale</th>
+                                            <th class="text-end">Discount</th>
+                                            <th class="text-end">Return</th>
+                                            <th class="text-end">Sale Value</th>
+                                            <th class="text-end">GST</th>
+                                            <th class="text-end">Net Sale</th>
+                                            <th class="text-end">Profit Margin %</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="deptComparisonReportTableBody">
+                                        <tr>
+                                            <td colspan="10" class="text-center text-muted py-4">
+                                                <i class="fas fa-info-circle me-2"></i>
+                                                Click "Generate Report" to view department comparison data
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- End Tab 7: Department-Wise Sale Comparison -->
+                
+                <!-- Tab 8: Branch-Wise Sale Comparison -->
+                <div id="tab-branch-wise-sale-comparison" class="report-tab-content">
+                    <!-- Filters Section -->
+                    <div class="card mb-4 no-print">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-filter me-2"></i>Branch-Wise Sale Comparison Filters
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">Category</label>
+                                    <select class="form-select" id="branchComparisonReportCategory">
+                                        <option value="">All Categories</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Department</label>
+                                    <select class="form-select" id="branchComparisonReportDepartment">
+                                        <option value="">All Departments</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">From Date</label>
+                                    <input type="date" class="form-control" id="branchComparisonReportDateFrom">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">To Date</label>
+                                    <input type="date" class="form-control" id="branchComparisonReportDateTo">
+                                </div>
+                                <div class="col-md-2 d-flex align-items-end">
+                                    <button class="btn btn-primary w-100" id="generateBranchComparisonReportBtn">
+                                        <i class="fas fa-chart-line me-2"></i>Generate Report
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Comparison Table -->
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div>
+                                    <h5 class="card-title mb-0">Branch-Wise Sale Comparison</h5>
+                                    <div id="branchComparisonReportSubtitle" class="text-muted small mt-1" style="display: none;"></div>
+                                </div>
+                                <button class="btn btn-success no-print" id="printBranchComparisonReportBtn">
+                                    <i class="fas fa-print me-2"></i>Print Report
+                                </button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Rank</th>
+                                            <th>Branch</th>
+                                            <th class="text-end">Gross Sale</th>
+                                            <th class="text-end">Discount</th>
+                                            <th class="text-end">Return</th>
+                                            <th class="text-end">Sale Value</th>
+                                            <th class="text-end">GST</th>
+                                            <th class="text-end">Net Sale</th>
+                                            <th class="text-end">Profit Margin %</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="branchComparisonReportTableBody">
+                                        <tr>
+                                            <td colspan="9" class="text-center text-muted py-4">
+                                                <i class="fas fa-info-circle me-2"></i>
+                                                Click "Generate Report" to view branch comparison data
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- End Tab 8: Branch-Wise Sale Comparison -->
                 
             </div>
             <!-- ========================================
@@ -8266,6 +8733,14 @@
             }
             
             // Sub-Departments
+            async getSubDepartments(filters = {}) {
+                const queryParams = new URLSearchParams();
+                if (filters.departmentId) queryParams.append('departmentId', filters.departmentId);
+                if (filters.branchId) queryParams.append('branchId', filters.branchId);
+                const queryString = queryParams.toString();
+                return this.request(`/sub-departments${queryString ? '?' + queryString : ''}`);
+            }
+            
             async getSubDepartmentsByDepartment(departmentId) {
                 return this.request(`/departments/${departmentId}/sub-departments`);
             }
@@ -10642,6 +11117,96 @@
                     populateBranchSelectors();
                     populateCategorySelectors();
                 }
+                
+                // Populate filters for department-wise report tab
+                if (tabName === 'department-wise-report') {
+                    populateBranchSelectors();
+                    
+                    // Ensure event listeners are attached and load departments if branch is selected
+                    const deptWiseReportBranch = document.getElementById('deptWiseReportBranch');
+                    if (deptWiseReportBranch) {
+                        // Attach event listener using onchange (overwrites any existing)
+                        deptWiseReportBranch.onchange = function() {
+                            loadDepartmentsForDeptWiseReport();
+                        };
+                        
+                        // Also use addEventListener as backup (in case onchange doesn't work in some browsers)
+                        deptWiseReportBranch.addEventListener('change', function() {
+                            loadDepartmentsForDeptWiseReport();
+                        });
+                        
+                        // Load departments if branch is already selected
+                        if (deptWiseReportBranch.value) {
+                            loadDepartmentsForDeptWiseReport();
+                        }
+                    }
+                }
+                
+                // Populate filters for sub-department-wise report tab
+                if (tabName === 'sub-department-wise-report') {
+                    populateBranchSelectors();
+                    
+                    // Ensure event listeners are attached and load departments if branch is selected
+                    const subDeptWiseReportBranch = document.getElementById('subDeptWiseReportBranch');
+                    const subDeptWiseReportDepartment = document.getElementById('subDeptWiseReportDepartment');
+                    
+                    if (subDeptWiseReportBranch) {
+                        // Attach event listener using onchange (overwrites any existing)
+                        subDeptWiseReportBranch.onchange = function() {
+                            loadDepartmentsForSubDeptWiseReport();
+                        };
+                        
+                        // Also use addEventListener as backup
+                        subDeptWiseReportBranch.addEventListener('change', function() {
+                            loadDepartmentsForSubDeptWiseReport();
+                        });
+                        
+                        // Load departments if branch is already selected
+                        if (subDeptWiseReportBranch.value) {
+                            loadDepartmentsForSubDeptWiseReport();
+                        }
+                    }
+                    
+                    if (subDeptWiseReportDepartment) {
+                        // Attach event listener using onchange (overwrites any existing)
+                        subDeptWiseReportDepartment.onchange = function() {
+                            loadSubDepartmentsForSubDeptWiseReport();
+                        };
+                        
+                        // Also use addEventListener as backup
+                        subDeptWiseReportDepartment.addEventListener('change', function() {
+                            loadSubDepartmentsForSubDeptWiseReport();
+                        });
+                    }
+                }
+                
+                // Populate filters for department-wise sale comparison tab
+                if (tabName === 'department-wise-sale-comparison') {
+                    populateBranchSelectors();
+                    populateCategorySelectors();
+                    
+                    // Ensure event listeners are attached
+                    const deptComparisonReportBranch = document.getElementById('deptComparisonReportBranch');
+                    if (deptComparisonReportBranch) {
+                        deptComparisonReportBranch.onchange = function() {
+                            loadDepartmentsForDeptComparisonReport();
+                        };
+                        deptComparisonReportBranch.addEventListener('change', function() {
+                            loadDepartmentsForDeptComparisonReport();
+                        });
+                        if (deptComparisonReportBranch.value) {
+                            loadDepartmentsForDeptComparisonReport();
+                        }
+                    }
+                }
+                
+                // Populate filters for branch-wise sale comparison tab
+                if (tabName === 'branch-wise-sale-comparison') {
+                    populateCategorySelectors();
+                    
+                    // Load departments for branch comparison
+                    loadAllDepartmentsForBranchComparison();
+                }
             }
             
             // Add click event listeners to all report tabs
@@ -10726,6 +11291,114 @@
             if (printPaymentReportBtn) {
                 printPaymentReportBtn.addEventListener('click', function() {
                     printPaymentReportPreview();
+                });
+            }
+            
+            // Department-Wise Report Generate Button
+            const generateDeptWiseReportBtn = document.getElementById('generateDeptWiseReportBtn');
+            if (generateDeptWiseReportBtn) {
+                generateDeptWiseReportBtn.addEventListener('click', function() {
+                    generateDeptWiseReport();
+                    showNotification('Department-wise report generated successfully!', 'success');
+                });
+            }
+            
+            // Sub-Department-Wise Report Generate Button
+            const generateSubDeptWiseReportBtn = document.getElementById('generateSubDeptWiseReportBtn');
+            if (generateSubDeptWiseReportBtn) {
+                generateSubDeptWiseReportBtn.addEventListener('click', function() {
+                    generateSubDeptWiseReport();
+                    showNotification('Sub-department-wise report generated successfully!', 'success');
+                });
+            }
+            
+            // Department-Wise Report Print Button
+            const printDeptWiseReportBtn = document.getElementById('printDeptWiseReportBtn');
+            if (printDeptWiseReportBtn) {
+                printDeptWiseReportBtn.addEventListener('click', function() {
+                    printDeptWiseReport();
+                });
+            }
+            
+            // Sub-Department-Wise Report Print Button
+            const printSubDeptWiseReportBtn = document.getElementById('printSubDeptWiseReportBtn');
+            if (printSubDeptWiseReportBtn) {
+                printSubDeptWiseReportBtn.addEventListener('click', function() {
+                    printSubDeptWiseReport();
+                });
+            }
+            
+            // Department-Wise Sale Comparison Generate Button
+            const generateDeptComparisonReportBtn = document.getElementById('generateDeptComparisonReportBtn');
+            if (generateDeptComparisonReportBtn) {
+                generateDeptComparisonReportBtn.addEventListener('click', function() {
+                    generateDeptComparisonReport();
+                    showNotification('Department-wise comparison report generated successfully!', 'success');
+                });
+            }
+            
+            // Branch-Wise Sale Comparison Generate Button
+            const generateBranchComparisonReportBtn = document.getElementById('generateBranchComparisonReportBtn');
+            if (generateBranchComparisonReportBtn) {
+                generateBranchComparisonReportBtn.addEventListener('click', function() {
+                    generateBranchComparisonReport();
+                    showNotification('Branch-wise comparison report generated successfully!', 'success');
+                });
+            }
+            
+            // Department-Wise Sale Comparison Print Button
+            const printDeptComparisonReportBtn = document.getElementById('printDeptComparisonReportBtn');
+            if (printDeptComparisonReportBtn) {
+                printDeptComparisonReportBtn.addEventListener('click', function() {
+                    printDeptComparisonReport();
+                });
+            }
+            
+            // Branch-Wise Sale Comparison Print Button
+            const printBranchComparisonReportBtn = document.getElementById('printBranchComparisonReportBtn');
+            if (printBranchComparisonReportBtn) {
+                printBranchComparisonReportBtn.addEventListener('click', function() {
+                    printBranchComparisonReport();
+                });
+            }
+            
+            // Load departments when branch changes in shop report
+            const shopReportBranch = document.getElementById('shopReportBranch');
+            if (shopReportBranch) {
+                shopReportBranch.addEventListener('change', function() {
+                    loadDepartmentsForShopReport();
+                });
+            }
+            
+            // Load sub-departments when department changes in shop report
+            const shopReportDepartment = document.getElementById('shopReportDepartment');
+            if (shopReportDepartment) {
+                shopReportDepartment.addEventListener('change', function() {
+                    loadSubDepartmentsForShopReport();
+                });
+            }
+            
+            // Load departments when branch changes in department-wise report
+            const deptWiseReportBranch = document.getElementById('deptWiseReportBranch');
+            if (deptWiseReportBranch) {
+                deptWiseReportBranch.addEventListener('change', function() {
+                    loadDepartmentsForDeptWiseReport();
+                });
+            }
+            
+            // Load departments when branch changes in sub-department-wise report
+            const subDeptWiseReportBranch = document.getElementById('subDeptWiseReportBranch');
+            if (subDeptWiseReportBranch) {
+                subDeptWiseReportBranch.addEventListener('change', function() {
+                    loadDepartmentsForSubDeptWiseReport();
+                });
+            }
+            
+            // Load sub-departments when department changes in sub-department-wise report
+            const subDeptWiseReportDepartment = document.getElementById('subDeptWiseReportDepartment');
+            if (subDeptWiseReportDepartment) {
+                subDeptWiseReportDepartment.addEventListener('change', function() {
+                    loadSubDepartmentsForSubDeptWiseReport();
                 });
             }
             
@@ -11787,6 +12460,13 @@
                 'salesReportBranch',
                 'comparisonReportBranch',
                 'datewiseReportBranch',
+                // Shop reporting selectors
+                'shopReportBranch',
+                // Department-wise and Sub-department-wise report selectors
+                'deptWiseReportBranch',
+                'subDeptWiseReportBranch',
+                // Department-Wise and Branch-Wise Sale Comparison selectors
+                'deptComparisonReportBranch',
                 // Payment selectors
                 'paymentBranch',
                 'paymentBranchFilter',
@@ -11860,7 +12540,9 @@
                 'editPaymentCategory',
                 // Payment report selectors
                 'reportCategoryFilter',
-                'paymentReportCategoryFilter'
+                'paymentReportCategoryFilter',
+                // Branch-Wise Sale Comparison selector
+                'branchComparisonReportCategory'
             ];
             
             selectors.forEach(selectorId => {
@@ -12185,37 +12867,36 @@
                 
                 // Load data with date filter - use department sales for shop dashboard
                 if (tabPrefix === 'shop') {
-                    const [departmentSales, branches, departments] = await Promise.all([
+                    // Show loading indicator
+                    const branchCardsContainer = document.getElementById(`${tabPrefix}BranchCardsContainer`);
+                    if (branchCardsContainer) {
+                        branchCardsContainer.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div><p class="mt-2 text-muted">Loading dashboard data...</p></div>';
+                    }
+                    
+                    // Load all data in parallel (optimized: single sub-departments call instead of N calls)
+                    const [departmentSales, branches, departments, subDepartments] = await Promise.all([
                         api.getDepartmentSales(salesFilters),
                         api.getBranches(),
-                        api.getDepartments()
+                        api.getDepartments(),
+                        api.getSubDepartments().catch(() => []) // Single call instead of N calls per department
                     ]);
                     
                     appData.departmentSales = departmentSales;
                     appData.branches = branches;
                     appData.departments = departments;
-                    
-                    // Load sub-departments for all departments
-                    const subDepartmentsPromises = departments.map(dept => 
-                        api.getSubDepartmentsByDepartment(dept._id).catch(() => [])
-                    );
-                    const subDepartmentsArrays = await Promise.all(subDepartmentsPromises);
-                    appData.subDepartments = subDepartmentsArrays.flat();
+                    appData.subDepartments = subDepartments;
                     
                     const categoryBreakdownSelector = document.getElementById(`${tabPrefix}CategoryBreakdownBranchFilter`);
                     const categoryBreakdownFilter = categoryBreakdownSelector ? categoryBreakdownSelector.value : '';
                     
-                    // Populate department breakdown branch filter
+                    // Populate filters (these are synchronous DOM operations, fast)
                     populateCategoryBreakdownBranchFilter(tabPrefix);
-                    
-                    // Populate month filter dropdown
                     populateMonthFilter(tabPrefix);
                     
+                    // Update UI (these are synchronous DOM operations)
                     loadBranchCards(categoryBreakdownFilter, tabPrefix);
                     loadComparisonTables(tabPrefix);
-                    // Initialize branch chart only (removed trends chart for shop dashboard)
                     initializeBranchChart(tabPrefix);
-                    // Load branch-wise comparison table
                     loadBranchWiseComparisonTable(tabPrefix);
                 } else {
                 const [sales, branches, categories] = await Promise.all([
@@ -12732,11 +13413,14 @@
                     // Calculate shop sale entry fields for branch totals
                     const totalGrossSale = branchSales.reduce((sum, sale) => sum + (sale.grossSale || 0), 0);
                     const totalDiscountAmount = branchSales.reduce((sum, sale) => sum + (sale.discountAmount || 0), 0);
+                    // New formula: Discount % = (Discount Value / Gross Sale) * 100
                     const totalDiscountPercent = totalGrossSale > 0 ? (totalDiscountAmount / totalGrossSale * 100) : 0;
-                    const totalSaleValue = branchSales.reduce((sum, sale) => sum + (sale.saleValue || 0), 0);
                     const totalReturn = branchSales.reduce((sum, sale) => sum + (sale.returnAmount || 0), 0);
+                    // New formula: Sale Value = Gross Sale - Discount - Return
+                    const totalSaleValue = totalGrossSale - totalDiscountAmount - totalReturn;
                     const totalGST = branchSales.reduce((sum, sale) => sum + (sale.gst || 0), 0);
-                    const totalNetSale = branchSales.reduce((sum, sale) => sum + (sale.netSale || 0), 0);
+                    // New formula: Net Sale = Sale Value + GST
+                    const totalNetSale = totalSaleValue + totalGST;
                     
                     // Calculate department-wise breakdown with sub-departments
                     const departmentData = {};
@@ -12749,11 +13433,14 @@
                         // Calculate department totals using shop sale entry fields
                         const deptGrossSale = departmentSales.reduce((sum, sale) => sum + (sale.grossSale || 0), 0);
                         const deptDiscountAmount = departmentSales.reduce((sum, sale) => sum + (sale.discountAmount || 0), 0);
+                        // New formula: Discount % = (Discount Value / Gross Sale) * 100
                         const deptDiscountPercent = deptGrossSale > 0 ? (deptDiscountAmount / deptGrossSale * 100) : 0;
-                        const deptSaleValue = departmentSales.reduce((sum, sale) => sum + (sale.saleValue || 0), 0);
                         const deptReturn = departmentSales.reduce((sum, sale) => sum + (sale.returnAmount || 0), 0);
+                        // New formula: Sale Value = Gross Sale - Discount - Return
+                        const deptSaleValue = deptGrossSale - deptDiscountAmount - deptReturn;
                         const deptGST = departmentSales.reduce((sum, sale) => sum + (sale.gst || 0), 0);
-                        const deptNetSale = departmentSales.reduce((sum, sale) => sum + (sale.netSale || 0), 0);
+                        // New formula: Net Sale = Sale Value + GST
+                        const deptNetSale = deptSaleValue + deptGST;
                         
                         // Calculate sub-department breakdown - only for sub-departments belonging to this department
                         const subDepartmentData = {};
@@ -12776,11 +13463,14 @@
                             if (subDeptSales.length > 0) {
                                 const subGrossSale = subDeptSales.reduce((sum, sale) => sum + (sale.grossSale || 0), 0);
                                 const subDiscountAmount = subDeptSales.reduce((sum, sale) => sum + (sale.discountAmount || 0), 0);
+                                // New formula: Discount % = (Discount Value / Gross Sale) * 100
                                 const subDiscountPercent = subGrossSale > 0 ? (subDiscountAmount / subGrossSale * 100) : 0;
-                                const subSaleValue = subDeptSales.reduce((sum, sale) => sum + (sale.saleValue || 0), 0);
                                 const subReturn = subDeptSales.reduce((sum, sale) => sum + (sale.returnAmount || 0), 0);
+                                // New formula: Sale Value = Gross Sale - Discount - Return
+                                const subSaleValue = subGrossSale - subDiscountAmount - subReturn;
                                 const subGST = subDeptSales.reduce((sum, sale) => sum + (sale.gst || 0), 0);
-                                const subNetSale = subDeptSales.reduce((sum, sale) => sum + (sale.netSale || 0), 0);
+                                // New formula: Net Sale = Sale Value + GST
+                                const subNetSale = subSaleValue + subGST;
                                 
                                 subDepartmentData[subDept._id] = {
                                     name: subDept.name,
@@ -12801,6 +13491,7 @@
                             departmentData[department._id] = {
                                 name: department.name,
                                 grossSale: deptGrossSale,
+                                discountAmount: deptDiscountAmount,
                                 discountPercent: deptDiscountPercent,
                                 saleValue: deptSaleValue,
                                 returnAmount: deptReturn,
@@ -12835,6 +13526,14 @@
                                             </div>
                                         </div>
                                         <div class="branch-kpi-item">
+                                            <div class="branch-kpi-label kpi-discount-value-label">
+                                                <i class="fas fa-tag me-2"></i>DISCOUNT VALUE
+                                            </div>
+                                            <div class="branch-kpi-value kpi-discount-value-value">
+                                                ${totalDiscountAmount.toLocaleString()}
+                                            </div>
+                                        </div>
+                                        <div class="branch-kpi-item">
                                             <div class="branch-kpi-label kpi-discount-label">
                                                 <i class="fas fa-percent me-2"></i>DISCOUNT %
                                             </div>
@@ -12843,19 +13542,19 @@
                                             </div>
                                         </div>
                                         <div class="branch-kpi-item">
-                                            <div class="branch-kpi-label kpi-sale-value-label">
-                                                <i class="fas fa-money-bill-wave me-2"></i>SALE VALUE
-                                            </div>
-                                            <div class="branch-kpi-value kpi-sale-value-value">
-                                                ${totalSaleValue.toLocaleString()}
-                                            </div>
-                                        </div>
-                                        <div class="branch-kpi-item">
                                             <div class="branch-kpi-label kpi-return-label">
                                                 <i class="fas fa-undo me-2"></i>RETURN
                                             </div>
                                             <div class="branch-kpi-value kpi-return-value">
                                                 ${totalReturn.toLocaleString()}
+                                            </div>
+                                        </div>
+                                        <div class="branch-kpi-item">
+                                            <div class="branch-kpi-label kpi-sale-value-label">
+                                                <i class="fas fa-money-bill-wave me-2"></i>SALE VALUE
+                                            </div>
+                                            <div class="branch-kpi-value kpi-sale-value-value">
+                                                ${totalSaleValue.toLocaleString()}
                                             </div>
                                         </div>
                                         <div class="branch-kpi-item">
@@ -12908,21 +13607,21 @@
                                                                 </div>
                                                                 <div class="col-6 col-md-3">
                                                                     <div class="branch-kpi-item">
-                                                                        <div class="branch-kpi-label kpi-cost-label">
-                                                                            DISCOUNT %
+                                                                        <div class="branch-kpi-label">
+                                                                            DISCOUNT VALUE
                                                                         </div>
-                                                                        <div class="branch-kpi-value kpi-cost-value">
-                                                                            ${(dept.discountPercent || 0).toFixed(2)}%
+                                                                        <div class="branch-kpi-value">
+                                                                            ${(dept.discountAmount || 0).toLocaleString()}
                                                                         </div>
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-6 col-md-3">
                                                                     <div class="branch-kpi-item">
-                                                                        <div class="branch-kpi-label kpi-profit-label">
-                                                                            SALE VALUE
+                                                                        <div class="branch-kpi-label kpi-cost-label">
+                                                                            DISCOUNT %
                                                                         </div>
-                                                                        <div class="branch-kpi-value kpi-profit-value">
-                                                                            ${(dept.saleValue || 0).toLocaleString()}
+                                                                        <div class="branch-kpi-value kpi-cost-value">
+                                                                            ${(dept.discountPercent || 0).toFixed(2)}%
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -12943,6 +13642,16 @@
                                                                         </div>
                                                                         <div class="branch-kpi-value">
                                                                             ${(dept.returnAmount || 0).toLocaleString()}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-6 col-md-3">
+                                                                    <div class="branch-kpi-item">
+                                                                        <div class="branch-kpi-label kpi-profit-label">
+                                                                            SALE VALUE
+                                                                        </div>
+                                                                        <div class="branch-kpi-value kpi-profit-value">
+                                                                            ${(dept.saleValue || 0).toLocaleString()}
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -13988,15 +14697,19 @@ sortedBranches.forEach(data => {
                         if (subDeptSales.length > 0) {
                             const subGrossSale = subDeptSales.reduce((sum, sale) => sum + (sale.grossSale || 0), 0);
                             const subDiscountAmount = subDeptSales.reduce((sum, sale) => sum + (sale.discountAmount || 0), 0);
+                            // Discount % = (Discount Value / Gross Sale) * 100
                             const subDiscountPercent = subGrossSale > 0 ? (subDiscountAmount / subGrossSale * 100) : 0;
-                            const subSaleValue = subDeptSales.reduce((sum, sale) => sum + (sale.saleValue || 0), 0);
                             const subReturn = subDeptSales.reduce((sum, sale) => sum + (sale.returnAmount || 0), 0);
+                            // Branch Wise Sales Detail formula: Sale Value = Gross Sale - Discount Value - Return
+                            const subSaleValue = subGrossSale - subDiscountAmount - subReturn;
                             const subGST = subDeptSales.reduce((sum, sale) => sum + (sale.gst || 0), 0);
-                            const subNetSale = subDeptSales.reduce((sum, sale) => sum + (sale.netSale || 0), 0);
+                            // Branch Wise Sales Detail formula: Net Sale = Sale Value + GST
+                            const subNetSale = subSaleValue + subGST;
                             
                             subDepartmentData[subDept._id] = {
                                 name: subDept.name,
                                 grossSale: subGrossSale,
+                                discountAmount: subDiscountAmount,
                                 discountPercent: subDiscountPercent,
                                 saleValue: subSaleValue,
                                 returnAmount: subReturn,
@@ -14012,27 +14725,34 @@ sortedBranches.forEach(data => {
                     if (Object.keys(subDepartmentData).length > 0) {
                         // Department total = sum of sub-departments (to avoid double counting)
                         grossSale = Object.values(subDepartmentData).reduce((sum, sub) => sum + (sub.grossSale || 0), 0);
-                        discountAmount = Object.values(subDepartmentData).reduce((sum, sub) => sum + ((sub.grossSale || 0) * (sub.discountPercent || 0) / 100), 0);
+                        discountAmount = Object.values(subDepartmentData).reduce((sum, sub) => sum + (sub.discountAmount || 0), 0);
+                        // Discount % = (Discount Value / Gross Sale) * 100
                         discountPercent = grossSale > 0 ? (discountAmount / grossSale * 100) : 0;
-                        saleValue = Object.values(subDepartmentData).reduce((sum, sub) => sum + (sub.saleValue || 0), 0);
                         returnAmount = Object.values(subDepartmentData).reduce((sum, sub) => sum + (sub.returnAmount || 0), 0);
+                        // Branch Wise Sales Detail formula: Sale Value = Gross Sale - Discount Value - Return
+                        saleValue = grossSale - discountAmount - returnAmount;
                         gst = Object.values(subDepartmentData).reduce((sum, sub) => sum + (sub.gst || 0), 0);
-                        netSale = Object.values(subDepartmentData).reduce((sum, sub) => sum + (sub.netSale || 0), 0);
+                        // Branch Wise Sales Detail formula: Net Sale = Sale Value + GST
+                        netSale = saleValue + gst;
                     } else {
                         // No sub-departments: use direct department sales
                         grossSale = branchDeptSales.reduce((sum, sale) => sum + (sale.grossSale || 0), 0);
                         discountAmount = branchDeptSales.reduce((sum, sale) => sum + (sale.discountAmount || 0), 0);
+                        // Discount % = (Discount Value / Gross Sale) * 100
                         discountPercent = grossSale > 0 ? (discountAmount / grossSale * 100) : 0;
-                        saleValue = branchDeptSales.reduce((sum, sale) => sum + (sale.saleValue || 0), 0);
                         returnAmount = branchDeptSales.reduce((sum, sale) => sum + (sale.returnAmount || 0), 0);
+                        // Branch Wise Sales Detail formula: Sale Value = Gross Sale - Discount Value - Return
+                        saleValue = grossSale - discountAmount - returnAmount;
                         gst = branchDeptSales.reduce((sum, sale) => sum + (sale.gst || 0), 0);
-                        netSale = branchDeptSales.reduce((sum, sale) => sum + (sale.netSale || 0), 0);
+                        // Branch Wise Sales Detail formula: Net Sale = Sale Value + GST
+                        netSale = saleValue + gst;
                     }
                     
                     // Always add department data, even if values are 0
                     branchDepartmentData[branch._id].departments[department._id] = {
                         name: department.name,
                         grossSale: grossSale,
+                        discountAmount: discountAmount,
                         discountPercent: discountPercent,
                         saleValue: saleValue,
                         returnAmount: returnAmount,
@@ -14099,9 +14819,10 @@ sortedBranches.forEach(data => {
                                                 <th>Rank</th>
                                                 <th>Department</th>
                                                 <th class="text-end">Gross Sale</th>
+                                                <th class="text-end">Discount Value</th>
                                                 <th class="text-end">Discount %</th>
-                                                <th class="text-end">Sale Value</th>
                                                 <th class="text-end">Return</th>
+                                                <th class="text-end">Sale Value</th>
                                                 <th class="text-end">GST</th>
                                                 <th class="text-end">Net Sale</th>
                                                 <th class="text-end">Daily Sale Average</th>
@@ -14219,7 +14940,7 @@ sortedBranches.forEach(data => {
             if (sortedDepartments.length === 0) {
                 console.warn(`No departments with sales for branch: ${branchName}. Total departments: ${Object.keys(branchData.departments).length}`);
                 const row = document.createElement('tr');
-                row.innerHTML = `<td colspan="9" class="text-center text-muted">No sales data available for this branch</td>`;
+                row.innerHTML = `<td colspan="10" class="text-center text-muted">No sales data available for this branch</td>`;
                 tableBody.appendChild(row);
                 return;
             }
@@ -14237,7 +14958,7 @@ sortedBranches.forEach(data => {
                     headingRow.className = 'table-secondary';
                     headingRow.style.backgroundColor = '#e9ecef';
                     headingRow.innerHTML = `
-                        <td colspan="9" style="padding: 12px 15px; font-weight: 700; font-size: 1rem; color: #495057;">
+                        <td colspan="10" style="padding: 12px 15px; font-weight: 700; font-size: 1rem; color: #495057;">
                             <i class="fas fa-building me-2"></i>${dept.name}
                         </td>
                     `;
@@ -14267,18 +14988,20 @@ sortedBranches.forEach(data => {
                                 <small>${subDept.name}</small>
                             </td>
                             <td class="text-end"><small>${(subDept.grossSale || 0).toLocaleString()}</small></td>
+                            <td class="text-end"><small>${((subDept.grossSale || 0) * (subDept.discountPercent || 0) / 100).toLocaleString()}</small></td>
                             <td class="text-end"><small>${(subDept.discountPercent || 0).toFixed(2)}%</small></td>
-                            <td class="text-end"><small>${(subDept.saleValue || 0).toLocaleString()}</small></td>
                             <td class="text-end"><small>${(subDept.returnAmount || 0).toLocaleString()}</small></td>
+                            <td class="text-end"><small>${(subDept.saleValue || 0).toLocaleString()}</small></td>
                             <td class="text-end"><small>${(subDept.gst || 0).toLocaleString()}</small></td>
                             <td class="text-end text-success"><small><strong>${(subDept.netSale || 0).toLocaleString()}</strong></small></td>
-                            <td class="text-end"><small><strong>${dailyAverage.toFixed(2)}</strong></small></td>
+                            <td class="text-end"><small><strong>${Math.round(dailyAverage).toLocaleString()}</strong></small></td>
                         `;
                         tableBody.appendChild(row);
                         
                         // Add to grand total calculation
                         allItemsForGrandTotal.push({
                             grossSale: subDept.grossSale || 0,
+                            discountAmount: subDept.discountAmount || 0,
                             discountPercent: subDept.discountPercent || 0,
                             saleValue: subDept.saleValue || 0,
                             returnAmount: subDept.returnAmount || 0,
@@ -14296,18 +15019,20 @@ sortedBranches.forEach(data => {
                         <td class="text-center"><strong>${rank}</strong></td>
                         <td><strong>${dept.name}</strong></td>
                         <td class="text-end"><strong>${(dept.grossSale || 0).toLocaleString()}</strong></td>
+                        <td class="text-end"><strong>${(dept.discountAmount || 0).toLocaleString()}</strong></td>
                         <td class="text-end"><strong>${(dept.discountPercent || 0).toFixed(2)}%</strong></td>
-                        <td class="text-end"><strong>${(dept.saleValue || 0).toLocaleString()}</strong></td>
                         <td class="text-end"><strong>${(dept.returnAmount || 0).toLocaleString()}</strong></td>
+                        <td class="text-end"><strong>${(dept.saleValue || 0).toLocaleString()}</strong></td>
                         <td class="text-end"><strong>${(dept.gst || 0).toLocaleString()}</strong></td>
                         <td class="text-end text-success"><strong>${(dept.netSale || 0).toLocaleString()}</strong></td>
-                        <td class="text-end"><strong>${dailyAverage.toFixed(2)}</strong></td>
+                        <td class="text-end"><strong>${Math.round(dailyAverage).toLocaleString()}</strong></td>
                     `;
                     tableBody.appendChild(row);
                     
                     // Add to grand total calculation
                     allItemsForGrandTotal.push({
                         grossSale: dept.grossSale || 0,
+                        discountAmount: dept.discountAmount || 0,
                         discountPercent: dept.discountPercent || 0,
                         saleValue: dept.saleValue || 0,
                         returnAmount: dept.returnAmount || 0,
@@ -14320,14 +15045,16 @@ sortedBranches.forEach(data => {
             // Calculate grand totals from all items
             const grandTotalGrossSale = allItemsForGrandTotal.reduce((sum, item) => sum + (item.grossSale || 0), 0);
             const grandTotalDiscountAmount = allItemsForGrandTotal.reduce((sum, item) => {
-                const discount = (item.grossSale || 0) * (item.discountPercent || 0) / 100;
-                return sum + discount;
+                return sum + (item.discountAmount || ((item.grossSale || 0) * (item.discountPercent || 0) / 100));
             }, 0);
+            // Discount % = (Discount Value / Gross Sale) * 100
             const grandTotalDiscountPercent = grandTotalGrossSale > 0 ? (grandTotalDiscountAmount / grandTotalGrossSale * 100) : 0;
-            const grandTotalSaleValue = allItemsForGrandTotal.reduce((sum, item) => sum + (item.saleValue || 0), 0);
             const grandTotalReturn = allItemsForGrandTotal.reduce((sum, item) => sum + (item.returnAmount || 0), 0);
+            // Branch Wise Sales Detail formula: Sale Value = Gross Sale - Discount Value - Return
+            const grandTotalSaleValue = grandTotalGrossSale - grandTotalDiscountAmount - grandTotalReturn;
             const grandTotalGST = allItemsForGrandTotal.reduce((sum, item) => sum + (item.gst || 0), 0);
-            const grandTotalNetSale = allItemsForGrandTotal.reduce((sum, item) => sum + (item.netSale || 0), 0);
+            // Branch Wise Sales Detail formula: Net Sale = Sale Value + GST
+            const grandTotalNetSale = grandTotalSaleValue + grandTotalGST;
             const grandTotalDailyAverage = numberOfDays > 0 ? grandTotalNetSale / numberOfDays : 0;
             
             // Add grand total row at the end
@@ -14336,12 +15063,13 @@ sortedBranches.forEach(data => {
             grandTotalRow.innerHTML = `
                 <td class="text-center" colspan="2"><strong>Grand Total</strong></td>
                 <td class="text-end"><strong>${grandTotalGrossSale.toLocaleString()}</strong></td>
+                <td class="text-end"><strong>${grandTotalDiscountAmount.toLocaleString()}</strong></td>
                 <td class="text-end"><strong>${grandTotalDiscountPercent.toFixed(2)}%</strong></td>
-                <td class="text-end"><strong>${grandTotalSaleValue.toLocaleString()}</strong></td>
                 <td class="text-end"><strong>${grandTotalReturn.toLocaleString()}</strong></td>
+                <td class="text-end"><strong>${grandTotalSaleValue.toLocaleString()}</strong></td>
                 <td class="text-end"><strong>${grandTotalGST.toLocaleString()}</strong></td>
                 <td class="text-end text-success"><strong>${grandTotalNetSale.toLocaleString()}</strong></td>
-                <td class="text-end"><strong>${grandTotalDailyAverage.toFixed(2)}</strong></td>
+                <td class="text-end"><strong>${Math.round(grandTotalDailyAverage).toLocaleString()}</strong></td>
             `;
             tableBody.appendChild(grandTotalRow);
         }
@@ -14475,7 +15203,7 @@ sortedBranches.forEach(data => {
                 console.warn(`Department not found: ${departmentName}. Available departments:`, Object.keys(departmentBranchData).map(id => departmentBranchData[id].name));
                 // Insert "No data" message
                 const row = document.createElement('tr');
-                row.innerHTML = `<td colspan="8" class="text-center text-muted">No sales data available for this department</td>`;
+                row.innerHTML = `<td colspan="9" class="text-center text-muted">No sales data available for this department</td>`;
                 tableBody.appendChild(row);
                 return;
             }
@@ -14507,7 +15235,7 @@ sortedBranches.forEach(data => {
             // If no branches with sales, show message
             if (sortedBranches.length === 0) {
                 const row = document.createElement('tr');
-                row.innerHTML = `<td colspan="8" class="text-center text-muted">No sales data available for this department</td>`;
+                row.innerHTML = `<td colspan="9" class="text-center text-muted">No sales data available for this department</td>`;
                 tableBody.appendChild(row);
                 return;
             }
@@ -14515,6 +15243,8 @@ sortedBranches.forEach(data => {
             // Display all branches sorted by net sale (descending)
             sortedBranches.forEach((branch, index) => {
                 const rank = index + 1;
+                // Calculate discount amount if not available
+                const discountAmount = branch.discountAmount || ((branch.grossSale || 0) * (branch.discountPercent || 0) / 100);
                 // Branch row - showing department total (sum of all sub-departments for this branch)
                 // Sub-departments are NOT shown, only the department total
                 const row = document.createElement('tr');
@@ -14523,9 +15253,10 @@ sortedBranches.forEach(data => {
                     <td class="text-center"><strong>${rank}</strong></td>
                     <td><strong>${branch.name}</strong></td>
                     <td class="text-end"><strong>${(branch.grossSale || 0).toLocaleString()}</strong></td>
+                    <td class="text-end"><strong>${discountAmount.toLocaleString()}</strong></td>
                     <td class="text-end"><strong>${(branch.discountPercent || 0).toFixed(2)}%</strong></td>
-                    <td class="text-end"><strong>${(branch.saleValue || 0).toLocaleString()}</strong></td>
                     <td class="text-end"><strong>${(branch.returnAmount || 0).toLocaleString()}</strong></td>
+                    <td class="text-end"><strong>${(branch.saleValue || 0).toLocaleString()}</strong></td>
                     <td class="text-end"><strong>${(branch.gst || 0).toLocaleString()}</strong></td>
                     <td class="text-end text-success"><strong>${(branch.netSale || 0).toLocaleString()}</strong></td>
                 `;
@@ -14535,15 +15266,23 @@ sortedBranches.forEach(data => {
             // Calculate grand totals for the department (sum of all branches)
             // Only ONE grand total per department table
             const grandTotalGrossSale = sortedBranches.reduce((sum, branch) => sum + (branch.grossSale || 0), 0);
+            // Calculate discount amount from branch data (should have discountAmount property)
             const grandTotalDiscountAmount = sortedBranches.reduce((sum, branch) => {
-                const discount = (branch.grossSale || 0) * (branch.discountPercent || 0) / 100;
-                return sum + discount;
+                // Try to get discountAmount directly, or calculate from discountPercent if not available
+                if (branch.discountAmount !== undefined) {
+                    return sum + (branch.discountAmount || 0);
+                } else {
+                    const discount = (branch.grossSale || 0) * (branch.discountPercent || 0) / 100;
+                    return sum + discount;
+                }
             }, 0);
+            // New formula: Discount % = (Discount Value / Gross Sale) * 100
             const grandTotalDiscountPercent = grandTotalGrossSale > 0 ? (grandTotalDiscountAmount / grandTotalGrossSale * 100) : 0;
             const grandTotalSaleValue = sortedBranches.reduce((sum, branch) => sum + (branch.saleValue || 0), 0);
             const grandTotalReturn = sortedBranches.reduce((sum, branch) => sum + (branch.returnAmount || 0), 0);
             const grandTotalGST = sortedBranches.reduce((sum, branch) => sum + (branch.gst || 0), 0);
-            const grandTotalNetSale = sortedBranches.reduce((sum, branch) => sum + (branch.netSale || 0), 0);
+            // New formula: Net Sale = Sale Value + GST
+            const grandTotalNetSale = grandTotalSaleValue + grandTotalGST;
             
             // Add ONE grand total row at the end of the table (not repeated)
             const grandTotalRow = document.createElement('tr');
@@ -14552,9 +15291,10 @@ sortedBranches.forEach(data => {
             grandTotalRow.innerHTML = `
                 <td class="text-center" colspan="2"><strong>Grand Total</strong></td>
                 <td class="text-end"><strong>${grandTotalGrossSale.toLocaleString()}</strong></td>
+                <td class="text-end"><strong>${grandTotalDiscountAmount.toLocaleString()}</strong></td>
                 <td class="text-end"><strong>${grandTotalDiscountPercent.toFixed(2)}%</strong></td>
-                <td class="text-end"><strong>${grandTotalSaleValue.toLocaleString()}</strong></td>
                 <td class="text-end"><strong>${grandTotalReturn.toLocaleString()}</strong></td>
+                <td class="text-end"><strong>${grandTotalSaleValue.toLocaleString()}</strong></td>
                 <td class="text-end"><strong>${grandTotalGST.toLocaleString()}</strong></td>
                 <td class="text-end text-success"><strong>${grandTotalNetSale.toLocaleString()}</strong></td>
             `;
@@ -15578,7 +16318,7 @@ sortedBranches.forEach(data => {
             
             // Check if data exists
             if (!appData.departmentSales || appData.departmentSales.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="9" class="text-center text-muted py-4">No sales data available. Please add sales data first.</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="10" class="text-center text-muted py-4">No sales data available. Please add sales data first.</td></tr>';
                 return;
             }
             
@@ -15618,11 +16358,18 @@ sortedBranches.forEach(data => {
                 if (branchData[branchId]) {
                     branchData[branchId].grossSale += sale.grossSale || 0;
                     branchData[branchId].discountAmount += sale.discountAmount || 0;
-                    branchData[branchId].saleValue += sale.saleValue || 0;
                     branchData[branchId].returnAmount += sale.returnAmount || 0;
                     branchData[branchId].gst += sale.gst || 0;
-                    branchData[branchId].netSale += sale.netSale || 0;
                 }
+            });
+            
+            // Calculate Sale Value and Net Sale for each branch using totals
+            Object.keys(branchData).forEach(branchId => {
+                const branch = branchData[branchId];
+                // Branch Wise Sale Comparison formula: Sale Value = Gross Sale - Discount Value - Return
+                branch.saleValue = branch.grossSale - branch.discountAmount - branch.returnAmount;
+                // Branch Wise Sale Comparison formula: Net Sale = Sale Value + GST
+                branch.netSale = branch.saleValue + branch.gst;
             });
             
             // Convert to array and filter branches with sales, then sort by net sale descending
@@ -15634,18 +16381,21 @@ sortedBranches.forEach(data => {
             tableBody.innerHTML = '';
             
             if (branchesWithSales.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="9" class="text-center text-muted py-4">No sales data available for any branch.</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="10" class="text-center text-muted py-4">No sales data available for any branch.</td></tr>';
                 return;
             }
             
             // Calculate grand totals
             const grandTotalGrossSale = branchesWithSales.reduce((sum, branch) => sum + branch.grossSale, 0);
             const grandTotalDiscountAmount = branchesWithSales.reduce((sum, branch) => sum + branch.discountAmount, 0);
+            // Discount % = (Discount Value / Gross Sale) * 100
             const grandTotalDiscountPercent = grandTotalGrossSale > 0 ? (grandTotalDiscountAmount / grandTotalGrossSale * 100) : 0;
-            const grandTotalSaleValue = branchesWithSales.reduce((sum, branch) => sum + branch.saleValue, 0);
             const grandTotalReturn = branchesWithSales.reduce((sum, branch) => sum + branch.returnAmount, 0);
+            // Branch Wise Sale Comparison formula: Sale Value = Gross Sale - Discount Value - Return
+            const grandTotalSaleValue = grandTotalGrossSale - grandTotalDiscountAmount - grandTotalReturn;
             const grandTotalGST = branchesWithSales.reduce((sum, branch) => sum + branch.gst, 0);
-            const grandTotalNetSale = branchesWithSales.reduce((sum, branch) => sum + branch.netSale, 0);
+            // Branch Wise Sale Comparison formula: Net Sale = Sale Value + GST
+            const grandTotalNetSale = grandTotalSaleValue + grandTotalGST;
             const grandTotalDailyAverage = numberOfDays > 0 ? grandTotalNetSale / numberOfDays : 0;
             
             // Populate table rows
@@ -15659,12 +16409,13 @@ sortedBranches.forEach(data => {
                     <td class="text-center"><strong>${rank}</strong></td>
                     <td><strong>${branch.name}</strong></td>
                     <td class="text-end">${branch.grossSale.toLocaleString()}</td>
+                    <td class="text-end">${branch.discountAmount.toLocaleString()}</td>
                     <td class="text-end">${discountPercent.toFixed(2)}%</td>
-                    <td class="text-end">${branch.saleValue.toLocaleString()}</td>
                     <td class="text-end">${branch.returnAmount.toLocaleString()}</td>
+                    <td class="text-end">${branch.saleValue.toLocaleString()}</td>
                     <td class="text-end">${branch.gst.toLocaleString()}</td>
                     <td class="text-end text-success"><strong>${branch.netSale.toLocaleString()}</strong></td>
-                    <td class="text-end"><strong>${dailyAverage.toFixed(2)}</strong></td>
+                    <td class="text-end"><strong>${Math.round(dailyAverage).toLocaleString()}</strong></td>
                 `;
                 tableBody.appendChild(row);
             });
@@ -15676,12 +16427,13 @@ sortedBranches.forEach(data => {
             grandTotalRow.innerHTML = `
                 <td class="text-center" colspan="2"><strong><i class="fas fa-calculator me-2"></i>Grand Total</strong></td>
                 <td class="text-end"><strong>${grandTotalGrossSale.toLocaleString()}</strong></td>
+                <td class="text-end"><strong>${grandTotalDiscountAmount.toLocaleString()}</strong></td>
                 <td class="text-end"><strong>${grandTotalDiscountPercent.toFixed(2)}%</strong></td>
-                <td class="text-end"><strong>${grandTotalSaleValue.toLocaleString()}</strong></td>
                 <td class="text-end"><strong>${grandTotalReturn.toLocaleString()}</strong></td>
+                <td class="text-end"><strong>${grandTotalSaleValue.toLocaleString()}</strong></td>
                 <td class="text-end"><strong>${grandTotalGST.toLocaleString()}</strong></td>
                 <td class="text-end text-success"><strong>${grandTotalNetSale.toLocaleString()}</strong></td>
-                <td class="text-end"><strong>${grandTotalDailyAverage.toFixed(2)}</strong></td>
+                <td class="text-end"><strong>${Math.round(grandTotalDailyAverage).toLocaleString()}</strong></td>
             `;
             tableBody.appendChild(grandTotalRow);
         }
@@ -23236,6 +23988,2669 @@ sortedBranches.forEach(data => {
                 console.error('Error generating datewise report:', error);
                 showNotification('Failed to generate report', 'error');
             });
+        }
+        
+        // Load departments for shop report filter
+        function loadDepartmentsForShopReport() {
+            const branchId = document.getElementById('shopReportBranch')?.value || '';
+            const departmentSelect = document.getElementById('shopReportDepartment');
+            const subDeptSelect = document.getElementById('shopReportSubDepartment');
+            
+            if (!departmentSelect) return;
+            
+            if (!branchId || branchId === '') {
+                departmentSelect.innerHTML = '<option value="">All Departments</option>';
+                if (subDeptSelect) {
+                    subDeptSelect.innerHTML = '<option value="">All Sub-Departments</option>';
+                }
+                return;
+            }
+            
+            // Show loading state
+            departmentSelect.innerHTML = '<option value="">Loading departments...</option>';
+            departmentSelect.disabled = true;
+            
+            api.getDepartments(branchId).then(departments => {
+                departmentSelect.innerHTML = '<option value="">All Departments</option>';
+                departments.forEach(dept => {
+                    const option = document.createElement('option');
+                    option.value = dept._id;
+                    option.textContent = dept.name;
+                    departmentSelect.appendChild(option);
+                });
+                departmentSelect.disabled = false;
+                
+                // Reset sub-department dropdown
+                if (subDeptSelect) {
+                    subDeptSelect.innerHTML = '<option value="">All Sub-Departments</option>';
+                }
+            }).catch(error => {
+                console.error('Error loading departments for shop report:', error);
+                departmentSelect.innerHTML = '<option value="">All Departments</option>';
+                departmentSelect.disabled = false;
+                showNotification('Failed to load departments', 'error');
+            });
+        }
+        
+        // Load sub-departments for shop report filter
+        function loadSubDepartmentsForShopReport() {
+            const branchId = document.getElementById('shopReportBranch')?.value || '';
+            const departmentId = document.getElementById('shopReportDepartment')?.value || '';
+            const subDeptSelect = document.getElementById('shopReportSubDepartment');
+            
+            if (!subDeptSelect) return;
+            
+            if (!branchId || branchId === '' || !departmentId || departmentId === '') {
+                subDeptSelect.innerHTML = '<option value="">All Sub-Departments</option>';
+                return;
+            }
+            
+            // Show loading state
+            subDeptSelect.innerHTML = '<option value="">Loading sub-departments...</option>';
+            subDeptSelect.disabled = true;
+            
+            api.getSubDepartmentsByDepartment(departmentId).then(subDepts => {
+                subDeptSelect.innerHTML = '<option value="">All Sub-Departments</option>';
+                subDepts.forEach(subDept => {
+                    const option = document.createElement('option');
+                    option.value = subDept._id;
+                    option.textContent = subDept.name;
+                    subDeptSelect.appendChild(option);
+                });
+                subDeptSelect.disabled = false;
+            }).catch(error => {
+                console.error('Error loading sub-departments for shop report:', error);
+                subDeptSelect.innerHTML = '<option value="">All Sub-Departments</option>';
+                subDeptSelect.disabled = false;
+                showNotification('Failed to load sub-departments', 'error');
+            });
+        }
+        
+        // Load departments for department-wise report filter
+        function loadDepartmentsForDeptWiseReport() {
+            const branchId = document.getElementById('deptWiseReportBranch')?.value || '';
+            const departmentSelect = document.getElementById('deptWiseReportDepartment');
+            
+            if (!departmentSelect) return;
+            
+            if (!branchId || branchId === '') {
+                departmentSelect.innerHTML = '<option value="">All Departments</option>';
+                return;
+            }
+            
+            // Show loading state
+            departmentSelect.innerHTML = '<option value="">Loading departments...</option>';
+            departmentSelect.disabled = true;
+            
+            api.getDepartments(branchId).then(departments => {
+                departmentSelect.innerHTML = '<option value="">All Departments</option>';
+                departments.forEach(dept => {
+                    const option = document.createElement('option');
+                    option.value = dept._id;
+                    option.textContent = dept.name;
+                    departmentSelect.appendChild(option);
+                });
+                departmentSelect.disabled = false;
+            }).catch(error => {
+                console.error('Error loading departments for department-wise report:', error);
+                departmentSelect.innerHTML = '<option value="">All Departments</option>';
+                departmentSelect.disabled = false;
+                showNotification('Failed to load departments', 'error');
+            });
+        }
+        
+        // Load departments for sub-department-wise report filter
+        function loadDepartmentsForSubDeptWiseReport() {
+            const branchId = document.getElementById('subDeptWiseReportBranch')?.value || '';
+            const departmentSelect = document.getElementById('subDeptWiseReportDepartment');
+            const subDeptSelect = document.getElementById('subDeptWiseReportSubDepartment');
+            
+            if (!departmentSelect) return;
+            
+            if (!branchId || branchId === '') {
+                departmentSelect.innerHTML = '<option value="">All Departments</option>';
+                if (subDeptSelect) {
+                    subDeptSelect.innerHTML = '<option value="">All Sub-Departments</option>';
+                }
+                return;
+            }
+            
+            // Show loading state
+            departmentSelect.innerHTML = '<option value="">Loading departments...</option>';
+            departmentSelect.disabled = true;
+            
+            api.getDepartments(branchId).then(departments => {
+                departmentSelect.innerHTML = '<option value="">All Departments</option>';
+                departments.forEach(dept => {
+                    const option = document.createElement('option');
+                    option.value = dept._id;
+                    option.textContent = dept.name;
+                    departmentSelect.appendChild(option);
+                });
+                departmentSelect.disabled = false;
+                
+                // Reset sub-department dropdown
+                if (subDeptSelect) {
+                    subDeptSelect.innerHTML = '<option value="">All Sub-Departments</option>';
+                }
+            }).catch(error => {
+                console.error('Error loading departments for sub-department-wise report:', error);
+                departmentSelect.innerHTML = '<option value="">All Departments</option>';
+                departmentSelect.disabled = false;
+                showNotification('Failed to load departments', 'error');
+            });
+        }
+        
+        // Load departments for department-wise comparison report filter
+        function loadDepartmentsForDeptComparisonReport() {
+            const branchId = document.getElementById('deptComparisonReportBranch')?.value || '';
+            const departmentSelect = document.getElementById('deptComparisonReportDepartment');
+            
+            if (!departmentSelect) return;
+            
+            if (!branchId || branchId === '') {
+                departmentSelect.innerHTML = '<option value="">All Departments</option>';
+                return;
+            }
+            
+            // Show loading state
+            departmentSelect.innerHTML = '<option value="">Loading departments...</option>';
+            departmentSelect.disabled = true;
+            
+            api.getDepartments(branchId).then(departments => {
+                departmentSelect.innerHTML = '<option value="">All Departments</option>';
+                departments.forEach(dept => {
+                    const option = document.createElement('option');
+                    option.value = dept._id;
+                    option.textContent = dept.name;
+                    departmentSelect.appendChild(option);
+                });
+                departmentSelect.disabled = false;
+            }).catch(error => {
+                console.error('Error loading departments for department comparison report:', error);
+                departmentSelect.innerHTML = '<option value="">All Departments</option>';
+                departmentSelect.disabled = false;
+                showNotification('Failed to load departments', 'error');
+            });
+        }
+        
+        // Load all departments for branch-wise comparison report
+        function loadAllDepartmentsForBranchComparison() {
+            const departmentSelect = document.getElementById('branchComparisonReportDepartment');
+            if (!departmentSelect) return;
+            
+            // If departments are already in appData, use them
+            if (appData.departments && appData.departments.length > 0) {
+                departmentSelect.innerHTML = '<option value="">All Departments</option>';
+                appData.departments.forEach(dept => {
+                    const option = document.createElement('option');
+                    option.value = dept._id;
+                    option.textContent = dept.name;
+                    departmentSelect.appendChild(option);
+                });
+            } else {
+                // Try to load from first branch if available
+                if (appData.branches && appData.branches.length > 0) {
+                    const firstBranchId = appData.branches[0]._id;
+                    api.getDepartments(firstBranchId).then(departments => {
+                        departmentSelect.innerHTML = '<option value="">All Departments</option>';
+                        departments.forEach(dept => {
+                            const option = document.createElement('option');
+                            option.value = dept._id;
+                            option.textContent = dept.name;
+                            departmentSelect.appendChild(option);
+                        });
+                    }).catch(error => {
+                        console.error('Error loading departments for branch comparison:', error);
+                        departmentSelect.innerHTML = '<option value="">All Departments</option>';
+                    });
+                }
+            }
+        }
+        
+        // Load sub-departments for sub-department-wise report filter
+        function loadSubDepartmentsForSubDeptWiseReport() {
+            const branchId = document.getElementById('subDeptWiseReportBranch')?.value || '';
+            const departmentId = document.getElementById('subDeptWiseReportDepartment')?.value || '';
+            const subDeptSelect = document.getElementById('subDeptWiseReportSubDepartment');
+            
+            if (!subDeptSelect) return;
+            
+            if (!branchId || branchId === '' || !departmentId || departmentId === '') {
+                subDeptSelect.innerHTML = '<option value="">All Sub-Departments</option>';
+                return;
+            }
+            
+            // Show loading state
+            subDeptSelect.innerHTML = '<option value="">Loading sub-departments...</option>';
+            subDeptSelect.disabled = true;
+            
+            api.getSubDepartmentsByDepartment(departmentId).then(subDepts => {
+                subDeptSelect.innerHTML = '<option value="">All Sub-Departments</option>';
+                subDepts.forEach(subDept => {
+                    const option = document.createElement('option');
+                    option.value = subDept._id;
+                    option.textContent = subDept.name;
+                    subDeptSelect.appendChild(option);
+                });
+                subDeptSelect.disabled = false;
+            }).catch(error => {
+                console.error('Error loading sub-departments for sub-department-wise report:', error);
+                subDeptSelect.innerHTML = '<option value="">All Sub-Departments</option>';
+                subDeptSelect.disabled = false;
+                showNotification('Failed to load sub-departments', 'error');
+            });
+        }
+        
+        // Generate Shop Report
+        function generateShopReport() {
+            const dateFrom = document.getElementById('shopReportDateFrom').value;
+            const dateTo = document.getElementById('shopReportDateTo').value;
+            const branchId = document.getElementById('shopReportBranch').value;
+            const departmentId = document.getElementById('shopReportDepartment').value;
+            const subDepartmentId = document.getElementById('shopReportSubDepartment').value;
+            
+            // Require at least one date to be selected
+            if (!dateFrom && !dateTo) {
+                showNotification('Please select at least one date (From or To) to generate the report', 'error');
+                return;
+            }
+            
+            // Update branch name heading and subtitle based on filters
+            const branchNameHeading = document.getElementById('shopReportBranchName');
+            const subDeptBranchNameHeading = document.getElementById('shopSubDeptReportBranchName');
+            const subtitle = document.getElementById('shopReportSubtitle');
+            const subDeptSubtitle = document.getElementById('shopSubDeptReportSubtitle');
+            
+            // Set branch name as centered heading
+            let branchNameText = '';
+            if (branchId) {
+                const branch = appData.branches.find(b => b._id === branchId);
+                if (branch) {
+                    branchNameText = branch.name;
+                }
+            }
+            
+            if (branchNameText) {
+                branchNameHeading.style.display = 'block';
+                branchNameHeading.textContent = branchNameText;
+                subDeptBranchNameHeading.style.display = 'block';
+                subDeptBranchNameHeading.textContent = branchNameText;
+            } else {
+                branchNameHeading.style.display = 'none';
+                subDeptBranchNameHeading.style.display = 'none';
+            }
+            
+            // Update subtitle for other filters
+            let subtitleText = '';
+            if (departmentId) {
+                const dept = appData.departments?.find(d => d._id === departmentId);
+                if (dept) subtitleText += `🏢 ${dept.name}`;
+            }
+            if (subDepartmentId) {
+                const subDept = appData.subDepartments?.find(sd => sd._id === subDepartmentId);
+                if (subDept) subtitleText += (subtitleText ? ' | ' : '') + `📁 ${subDept.name}`;
+            }
+            if (subtitleText) {
+                subtitle.style.display = 'block';
+                subtitle.textContent = subtitleText;
+                subDeptSubtitle.style.display = 'block';
+                subDeptSubtitle.textContent = subtitleText;
+            } else {
+                subtitle.style.display = 'none';
+                subDeptSubtitle.style.display = 'none';
+            }
+            
+            const filters = {};
+            if (dateFrom) filters.from = dateFrom;
+            if (dateTo) filters.to = dateTo;
+            if (branchId) filters.branchId = branchId;
+            if (departmentId) filters.departmentId = departmentId;
+            if (subDepartmentId) filters.subDepartmentId = subDepartmentId;
+            
+            api.getDepartmentSales(filters).then(data => {
+                // Extract branch name from data if not already set from filter
+                if (!branchNameText && data.length > 0) {
+                    // Get unique branches from data
+                    const uniqueBranches = new Set();
+                    data.forEach(sale => {
+                        if (sale.branchId) {
+                            const branchId = sale.branchId._id || sale.branchId;
+                            const branchName = sale.branchId?.name || null;
+                            if (branchName) {
+                                uniqueBranches.add(branchName);
+                            }
+                        }
+                    });
+                    
+                    // If only one unique branch, use it
+                    if (uniqueBranches.size === 1) {
+                        branchNameText = Array.from(uniqueBranches)[0];
+                        branchNameHeading.style.display = 'block';
+                        branchNameHeading.textContent = branchNameText;
+                        subDeptBranchNameHeading.style.display = 'block';
+                        subDeptBranchNameHeading.textContent = branchNameText;
+                    }
+                }
+                
+                // Calculate summary totals
+                let summaryGrossSale = 0;
+                let summaryDiscount = 0;
+                let summaryReturn = 0;
+                let summaryGST = 0;
+                let summaryNetSale = 0;
+                
+                data.forEach(sale => {
+                    summaryGrossSale += sale.grossSale || 0;
+                    summaryDiscount += sale.discount || 0;
+                    summaryReturn += sale.return || 0;
+                    summaryGST += sale.gst || 0;
+                    summaryNetSale += sale.netSale || 0;
+                });
+                
+                // Update summary cards
+                document.getElementById('summaryGrossSale').textContent = summaryGrossSale.toLocaleString();
+                document.getElementById('summaryTotalDiscount').textContent = summaryDiscount.toLocaleString();
+                document.getElementById('summaryTotalReturn').textContent = summaryReturn.toLocaleString();
+                document.getElementById('summaryTotalGST').textContent = summaryGST.toLocaleString();
+                document.getElementById('summaryNetSale').textContent = summaryNetSale.toLocaleString();
+                
+                // Department-wise report - Group by department only (no branch)
+                const deptReportData = {};
+                const uniqueDates = new Set();
+                
+                data.forEach(sale => {
+                    const deptId = sale.departmentId?._id || sale.departmentId;
+                    const deptName = sale.departmentId?.name || 'Unknown';
+                    
+                    // Track unique dates for daily average calculation
+                    if (sale.date) {
+                        const saleDate = new Date(sale.date);
+                        const dateString = saleDate.toISOString().split('T')[0];
+                        uniqueDates.add(dateString);
+                    }
+                    
+                    if (!deptReportData[deptId]) {
+                        deptReportData[deptId] = {
+                            department: deptName,
+                            grossSale: 0,
+                            discountAmount: 0,
+                            returnAmount: 0,
+                            gst: 0,
+                            netSale: 0
+                        };
+                    }
+                    
+                    deptReportData[deptId].grossSale += sale.grossSale || 0;
+                    deptReportData[deptId].discountAmount += sale.discountAmount || 0;
+                    deptReportData[deptId].returnAmount += sale.returnAmount || 0;
+                    deptReportData[deptId].gst += sale.gst || 0;
+                    deptReportData[deptId].netSale += sale.netSale || 0;
+                });
+                
+                // Update department-wise table
+                const deptTableBody = document.getElementById('shopReportTableBody');
+                deptTableBody.innerHTML = '';
+                
+                const numberOfDays = uniqueDates.size > 0 ? uniqueDates.size : 1;
+                
+                const sortedDeptData = Object.values(deptReportData).sort((a, b) => {
+                    return a.department.localeCompare(b.department);
+                });
+                
+                sortedDeptData.forEach(item => {
+                    // Calculate values
+                    const discountPercent = item.grossSale > 0 ? (item.discountAmount / item.grossSale * 100) : 0;
+                    // Sale Value = Gross Sale - Discount Value - Return
+                    const saleValue = item.grossSale - item.discountAmount - item.returnAmount;
+                    const dailyAverage = numberOfDays > 0 ? item.netSale / numberOfDays : 0;
+                    
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${item.department}</td>
+                        <td class="text-end">${item.grossSale.toLocaleString()}</td>
+                        <td class="text-end">${item.discountAmount.toLocaleString()}</td>
+                        <td class="text-end">${discountPercent.toFixed(2)}%</td>
+                        <td class="text-end">${item.returnAmount.toLocaleString()}</td>
+                        <td class="text-end">${saleValue.toLocaleString()}</td>
+                        <td class="text-end">${item.gst.toLocaleString()}</td>
+                        <td class="text-end" style="font-weight: 700;">${item.netSale.toLocaleString()}</td>
+                        <td class="text-end">${Math.round(dailyAverage).toLocaleString()}</td>
+                    `;
+                    deptTableBody.appendChild(row);
+                });
+                
+                // Sub-department-wise report
+                const subDeptReportData = {};
+                const subDeptUniqueDates = new Set();
+                
+                data.forEach(sale => {
+                    if (!sale.subDepartmentId) return;
+                    
+                    // Track unique dates for daily average calculation
+                    if (sale.date) {
+                        const saleDate = new Date(sale.date);
+                        const dateString = saleDate.toISOString().split('T')[0];
+                        subDeptUniqueDates.add(dateString);
+                    }
+                    
+                    const subDeptId = sale.subDepartmentId._id || sale.subDepartmentId;
+                    const subDeptName = sale.subDepartmentId?.name || 'Unknown';
+                    const deptName = sale.departmentId?.name || 'Unknown';
+                    const branchName = sale.branchId?.name || 'Unknown';
+                    const key = `${subDeptId}-${sale.branchId?._id || sale.branchId}`;
+                    
+                    if (!subDeptReportData[key]) {
+                        subDeptReportData[key] = {
+                            subDepartment: subDeptName,
+                            department: deptName,
+                            branch: branchName,
+                            grossSale: 0,
+                            discount: 0,
+                            return: 0,
+                            gst: 0,
+                            netSale: 0
+                        };
+                    }
+                    
+                    subDeptReportData[key].grossSale += sale.grossSale || 0;
+                    subDeptReportData[key].discount += sale.discount || 0;
+                    subDeptReportData[key].return += sale.return || 0;
+                    subDeptReportData[key].gst += sale.gst || 0;
+                    subDeptReportData[key].netSale += sale.netSale || 0;
+                });
+                
+                // Update sub-department-wise table
+                const subDeptTableBody = document.getElementById('shopSubDeptReportTableBody');
+                subDeptTableBody.innerHTML = '';
+                
+                const subDeptNumberOfDays = subDeptUniqueDates.size > 0 ? subDeptUniqueDates.size : 1;
+                
+                if (Object.keys(subDeptReportData).length === 0) {
+                    subDeptTableBody.innerHTML = `
+                        <tr>
+                            <td colspan="10" class="text-center text-muted py-4">
+                                <i class="fas fa-info-circle me-2"></i>
+                                No sub-department data available for the selected filters
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    const sortedSubDeptData = Object.values(subDeptReportData).sort((a, b) => {
+                        if (a.branch !== b.branch) return a.branch.localeCompare(b.branch);
+                        if (a.department !== b.department) return a.department.localeCompare(b.department);
+                        return a.subDepartment.localeCompare(b.subDepartment);
+                    });
+                    
+                    sortedSubDeptData.forEach(item => {
+                        // Calculate values
+                        // Sale Value = Gross Sale - Discount - Return
+                        const saleValue = item.grossSale - item.discount - item.return;
+                        const dailyAverage = subDeptNumberOfDays > 0 ? item.netSale / subDeptNumberOfDays : 0;
+                        
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${item.subDepartment}</td>
+                            <td>${item.department}</td>
+                            <td>${item.branch}</td>
+                            <td class="text-end">${item.grossSale.toLocaleString()}</td>
+                            <td class="text-end">${item.discount.toLocaleString()}</td>
+                            <td class="text-end">${item.return.toLocaleString()}</td>
+                            <td class="text-end">${saleValue.toLocaleString()}</td>
+                            <td class="text-end">${item.gst.toLocaleString()}</td>
+                            <td class="text-end" style="font-weight: 700;">${item.netSale.toLocaleString()}</td>
+                            <td class="text-end">${Math.round(dailyAverage).toLocaleString()}</td>
+                        `;
+                        subDeptTableBody.appendChild(row);
+                    });
+                }
+            }).catch(error => {
+                console.error('Error generating shop report:', error);
+                showNotification('Failed to generate shop report', 'error');
+            });
+        }
+        
+        // Generate Department-Wise Report
+        function generateDeptWiseReport() {
+            const dateFrom = document.getElementById('deptWiseReportDateFrom').value;
+            const dateTo = document.getElementById('deptWiseReportDateTo').value;
+            const branchId = document.getElementById('deptWiseReportBranch').value;
+            const departmentId = document.getElementById('deptWiseReportDepartment').value;
+            
+            // Require at least one date to be selected
+            if (!dateFrom && !dateTo) {
+                showNotification('Please select at least one date (From or To) to generate the report', 'error');
+                return;
+            }
+            
+            // Update branch name heading and subtitle based on filters
+            const branchNameHeading = document.getElementById('deptWiseReportBranchName');
+            const subtitle = document.getElementById('deptWiseReportSubtitle');
+            
+            // Set branch name as centered heading
+            let branchNameText = '';
+            if (branchId) {
+                const branch = appData.branches.find(b => b._id === branchId);
+                if (branch) {
+                    branchNameText = branch.name;
+                }
+            }
+            
+            if (branchNameText) {
+                branchNameHeading.style.display = 'block';
+                branchNameHeading.textContent = branchNameText;
+            } else {
+                branchNameHeading.style.display = 'none';
+            }
+            
+            // Update subtitle for other filters
+            let subtitleText = '';
+            if (departmentId) {
+                const dept = appData.departments?.find(d => d._id === departmentId);
+                if (dept) subtitleText += `🏢 ${dept.name}`;
+            }
+            if (subtitleText) {
+                subtitle.style.display = 'block';
+                subtitle.textContent = subtitleText;
+            } else {
+                subtitle.style.display = 'none';
+            }
+            
+            const filters = {};
+            if (dateFrom) filters.from = dateFrom;
+            if (dateTo) filters.to = dateTo;
+            if (branchId) filters.branchId = branchId;
+            if (departmentId) filters.departmentId = departmentId;
+            
+            api.getDepartmentSales(filters).then(data => {
+                // Extract branch name from data if not already set from filter
+                if (!branchNameText && data.length > 0) {
+                    // Get unique branches from data
+                    const uniqueBranches = new Set();
+                    data.forEach(sale => {
+                        if (sale.branchId) {
+                            const branchName = sale.branchId?.name || null;
+                            if (branchName) {
+                                uniqueBranches.add(branchName);
+                            }
+                        }
+                    });
+                    
+                    // If only one unique branch, use it
+                    if (uniqueBranches.size === 1) {
+                        branchNameText = Array.from(uniqueBranches)[0];
+                        branchNameHeading.style.display = 'block';
+                        branchNameHeading.textContent = branchNameText;
+                    }
+                }
+                
+                // Calculate summary totals
+                let summaryGrossSale = 0;
+                let summaryDiscount = 0;
+                let summaryReturn = 0;
+                let summaryGST = 0;
+                let summaryNetSale = 0;
+                
+                data.forEach(sale => {
+                    summaryGrossSale += sale.grossSale || 0;
+                    summaryDiscount += sale.discount || 0;
+                    summaryReturn += sale.return || 0;
+                    summaryGST += sale.gst || 0;
+                    summaryNetSale += sale.netSale || 0;
+                });
+                
+                // Update summary cards
+                document.getElementById('deptWiseSummaryGrossSale').textContent = summaryGrossSale.toLocaleString();
+                document.getElementById('deptWiseSummaryTotalDiscount').textContent = summaryDiscount.toLocaleString();
+                document.getElementById('deptWiseSummaryTotalReturn').textContent = summaryReturn.toLocaleString();
+                document.getElementById('deptWiseSummaryTotalGST').textContent = summaryGST.toLocaleString();
+                document.getElementById('deptWiseSummaryNetSale').textContent = summaryNetSale.toLocaleString();
+                
+                // Department-wise report - Group by department only (no branch)
+                const deptReportData = {};
+                const uniqueDates = new Set();
+                
+                data.forEach(sale => {
+                    const deptId = sale.departmentId?._id || sale.departmentId;
+                    const deptName = sale.departmentId?.name || 'Unknown';
+                    
+                    // Track unique dates for daily average calculation
+                    if (sale.date) {
+                        const saleDate = new Date(sale.date);
+                        const dateString = saleDate.toISOString().split('T')[0];
+                        uniqueDates.add(dateString);
+                    }
+                    
+                    if (!deptReportData[deptId]) {
+                        deptReportData[deptId] = {
+                            department: deptName,
+                            grossSale: 0,
+                            discountAmount: 0,
+                            returnAmount: 0,
+                            gst: 0,
+                            netSale: 0
+                        };
+                    }
+                    
+                    deptReportData[deptId].grossSale += sale.grossSale || 0;
+                    deptReportData[deptId].discountAmount += sale.discountAmount || 0;
+                    deptReportData[deptId].returnAmount += sale.returnAmount || 0;
+                    deptReportData[deptId].gst += sale.gst || 0;
+                    deptReportData[deptId].netSale += sale.netSale || 0;
+                });
+                
+                // Update department-wise table
+                const deptTableBody = document.getElementById('deptWiseReportTableBody');
+                deptTableBody.innerHTML = '';
+                
+                const numberOfDays = uniqueDates.size > 0 ? uniqueDates.size : 1;
+                
+                const sortedDeptData = Object.values(deptReportData).sort((a, b) => {
+                    return a.department.localeCompare(b.department);
+                });
+                
+                sortedDeptData.forEach(item => {
+                    // Calculate values
+                    const discountPercent = item.grossSale > 0 ? (item.discountAmount / item.grossSale * 100) : 0;
+                    // Sale Value = Gross Sale - Discount Value - Return
+                    const saleValue = item.grossSale - item.discountAmount - item.returnAmount;
+                    const dailyAverage = numberOfDays > 0 ? item.netSale / numberOfDays : 0;
+                    
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${item.department}</td>
+                        <td class="text-end">${item.grossSale.toLocaleString()}</td>
+                        <td class="text-end">${item.discountAmount.toLocaleString()}</td>
+                        <td class="text-end">${discountPercent.toFixed(2)}%</td>
+                        <td class="text-end">${item.returnAmount.toLocaleString()}</td>
+                        <td class="text-end">${saleValue.toLocaleString()}</td>
+                        <td class="text-end">${item.gst.toLocaleString()}</td>
+                        <td class="text-end" style="font-weight: 700;">${item.netSale.toLocaleString()}</td>
+                        <td class="text-end">${Math.round(dailyAverage).toLocaleString()}</td>
+                    `;
+                    deptTableBody.appendChild(row);
+                });
+            }).catch(error => {
+                console.error('Error generating department-wise report:', error);
+                showNotification('Failed to generate department-wise report', 'error');
+            });
+        }
+        
+        // Generate Sub-Department-Wise Report
+        function generateSubDeptWiseReport() {
+            const dateFrom = document.getElementById('subDeptWiseReportDateFrom').value;
+            const dateTo = document.getElementById('subDeptWiseReportDateTo').value;
+            const branchId = document.getElementById('subDeptWiseReportBranch').value;
+            const departmentId = document.getElementById('subDeptWiseReportDepartment').value;
+            const subDepartmentId = document.getElementById('subDeptWiseReportSubDepartment').value;
+            
+            // Require at least one date to be selected
+            if (!dateFrom && !dateTo) {
+                showNotification('Please select at least one date (From or To) to generate the report', 'error');
+                return;
+            }
+            
+            // Update branch name heading and subtitle based on filters
+            const branchNameHeading = document.getElementById('subDeptWiseReportBranchName');
+            const subtitle = document.getElementById('subDeptWiseReportSubtitle');
+            
+            // Set branch name as centered heading
+            let branchNameText = '';
+            if (branchId) {
+                const branch = appData.branches.find(b => b._id === branchId);
+                if (branch) {
+                    branchNameText = branch.name;
+                }
+            }
+            
+            if (branchNameText) {
+                branchNameHeading.style.display = 'block';
+                branchNameHeading.textContent = branchNameText;
+            } else {
+                branchNameHeading.style.display = 'none';
+            }
+            
+            // Update subtitle for other filters
+            let subtitleText = '';
+            if (departmentId) {
+                const dept = appData.departments?.find(d => d._id === departmentId);
+                if (dept) subtitleText += `🏢 ${dept.name}`;
+            }
+            if (subDepartmentId) {
+                const subDept = appData.subDepartments?.find(sd => sd._id === subDepartmentId);
+                if (subDept) subtitleText += (subtitleText ? ' | ' : '') + `📁 ${subDept.name}`;
+            }
+            if (subtitleText) {
+                subtitle.style.display = 'block';
+                subtitle.textContent = subtitleText;
+            } else {
+                subtitle.style.display = 'none';
+            }
+            
+            const filters = {};
+            if (dateFrom) filters.from = dateFrom;
+            if (dateTo) filters.to = dateTo;
+            if (branchId) filters.branchId = branchId;
+            if (departmentId) filters.departmentId = departmentId;
+            if (subDepartmentId) filters.subDepartmentId = subDepartmentId;
+            
+            api.getDepartmentSales(filters).then(data => {
+                // Extract branch name from data if not already set from filter
+                if (!branchNameText && data.length > 0) {
+                    // Get unique branches from data
+                    const uniqueBranches = new Set();
+                    data.forEach(sale => {
+                        if (sale.branchId) {
+                            const branchName = sale.branchId?.name || null;
+                            if (branchName) {
+                                uniqueBranches.add(branchName);
+                            }
+                        }
+                    });
+                    
+                    // If only one unique branch, use it
+                    if (uniqueBranches.size === 1) {
+                        branchNameText = Array.from(uniqueBranches)[0];
+                        branchNameHeading.style.display = 'block';
+                        branchNameHeading.textContent = branchNameText;
+                    }
+                }
+                
+                // Calculate summary totals
+                let summaryGrossSale = 0;
+                let summaryDiscount = 0;
+                let summaryReturn = 0;
+                let summaryGST = 0;
+                let summaryNetSale = 0;
+                
+                data.forEach(sale => {
+                    summaryGrossSale += sale.grossSale || 0;
+                    summaryDiscount += sale.discount || 0;
+                    summaryReturn += sale.return || 0;
+                    summaryGST += sale.gst || 0;
+                    summaryNetSale += sale.netSale || 0;
+                });
+                
+                // Update summary cards
+                document.getElementById('subDeptWiseSummaryGrossSale').textContent = summaryGrossSale.toLocaleString();
+                document.getElementById('subDeptWiseSummaryTotalDiscount').textContent = summaryDiscount.toLocaleString();
+                document.getElementById('subDeptWiseSummaryTotalReturn').textContent = summaryReturn.toLocaleString();
+                document.getElementById('subDeptWiseSummaryTotalGST').textContent = summaryGST.toLocaleString();
+                document.getElementById('subDeptWiseSummaryNetSale').textContent = summaryNetSale.toLocaleString();
+                
+                // Sub-department-wise report
+                const subDeptReportData = {};
+                const subDeptUniqueDates = new Set();
+                
+                data.forEach(sale => {
+                    if (!sale.subDepartmentId) return;
+                    
+                    // Track unique dates for daily average calculation
+                    if (sale.date) {
+                        const saleDate = new Date(sale.date);
+                        const dateString = saleDate.toISOString().split('T')[0];
+                        subDeptUniqueDates.add(dateString);
+                    }
+                    
+                    const subDeptId = sale.subDepartmentId._id || sale.subDepartmentId;
+                    const subDeptName = sale.subDepartmentId?.name || 'Unknown';
+                    const deptName = sale.departmentId?.name || 'Unknown';
+                    const branchName = sale.branchId?.name || 'Unknown';
+                    const key = `${subDeptId}-${sale.branchId?._id || sale.branchId}`;
+                    
+                    if (!subDeptReportData[key]) {
+                        subDeptReportData[key] = {
+                            subDepartment: subDeptName,
+                            department: deptName,
+                            branch: branchName,
+                            grossSale: 0,
+                            discount: 0,
+                            return: 0,
+                            gst: 0,
+                            netSale: 0
+                        };
+                    }
+                    
+                    subDeptReportData[key].grossSale += sale.grossSale || 0;
+                    subDeptReportData[key].discount += sale.discount || 0;
+                    subDeptReportData[key].return += sale.return || 0;
+                    subDeptReportData[key].gst += sale.gst || 0;
+                    subDeptReportData[key].netSale += sale.netSale || 0;
+                });
+                
+                // Update sub-department-wise table
+                const subDeptTableBody = document.getElementById('subDeptWiseReportTableBody');
+                subDeptTableBody.innerHTML = '';
+                
+                const subDeptNumberOfDays = subDeptUniqueDates.size > 0 ? subDeptUniqueDates.size : 1;
+                
+                if (Object.keys(subDeptReportData).length === 0) {
+                    subDeptTableBody.innerHTML = `
+                        <tr>
+                            <td colspan="10" class="text-center text-muted py-4">
+                                <i class="fas fa-info-circle me-2"></i>
+                                No sub-department data available for the selected filters
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    const sortedSubDeptData = Object.values(subDeptReportData).sort((a, b) => {
+                        if (a.branch !== b.branch) return a.branch.localeCompare(b.branch);
+                        if (a.department !== b.department) return a.department.localeCompare(b.department);
+                        return a.subDepartment.localeCompare(b.subDepartment);
+                    });
+                    
+                    sortedSubDeptData.forEach(item => {
+                        // Calculate values
+                        // Sale Value = Gross Sale - Discount - Return
+                        const saleValue = item.grossSale - item.discount - item.return;
+                        const dailyAverage = subDeptNumberOfDays > 0 ? item.netSale / subDeptNumberOfDays : 0;
+                        
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${item.subDepartment}</td>
+                            <td>${item.department}</td>
+                            <td>${item.branch}</td>
+                            <td class="text-end">${item.grossSale.toLocaleString()}</td>
+                            <td class="text-end">${item.discount.toLocaleString()}</td>
+                            <td class="text-end">${item.return.toLocaleString()}</td>
+                            <td class="text-end">${saleValue.toLocaleString()}</td>
+                            <td class="text-end">${item.gst.toLocaleString()}</td>
+                            <td class="text-end" style="font-weight: 700;">${item.netSale.toLocaleString()}</td>
+                            <td class="text-end">${Math.round(dailyAverage).toLocaleString()}</td>
+                        `;
+                        subDeptTableBody.appendChild(row);
+                    });
+                }
+            }).catch(error => {
+                console.error('Error generating sub-department-wise report:', error);
+                showNotification('Failed to generate sub-department-wise report', 'error');
+            });
+        }
+        
+        // Generate Department-Wise Sale Comparison Report
+        function generateDeptComparisonReport() {
+            const dateFrom = document.getElementById('deptComparisonReportDateFrom').value;
+            const dateTo = document.getElementById('deptComparisonReportDateTo').value;
+            const branchId = document.getElementById('deptComparisonReportBranch').value;
+            const departmentId = document.getElementById('deptComparisonReportDepartment').value;
+            
+            // Require at least one date to be selected
+            if (!dateFrom && !dateTo) {
+                showNotification('Please select at least one date (From or To) to generate the report', 'error');
+                return;
+            }
+            
+            // Update subtitle based on filters
+            const subtitle = document.getElementById('deptComparisonReportSubtitle');
+            let subtitleText = '';
+            if (branchId) {
+                const branch = appData.branches.find(b => b._id === branchId);
+                if (branch) subtitleText += `📍 ${branch.name}`;
+            }
+            if (departmentId) {
+                const dept = appData.departments?.find(d => d._id === departmentId);
+                if (dept) subtitleText += (subtitleText ? ' | ' : '') + `🏢 ${dept.name}`;
+            }
+            if (subtitleText) {
+                subtitle.style.display = 'block';
+                subtitle.textContent = subtitleText;
+            } else {
+                subtitle.style.display = 'none';
+            }
+            
+            const filters = {};
+            if (dateFrom) filters.from = dateFrom;
+            if (dateTo) filters.to = dateTo;
+            if (branchId) filters.branchId = branchId;
+            if (departmentId) filters.departmentId = departmentId;
+            
+            api.getDepartmentSales(filters).then(data => {
+                // Group by department and branch
+                const reportData = {};
+                data.forEach(sale => {
+                    const deptId = sale.departmentId?._id || sale.departmentId;
+                    const deptName = sale.departmentId?.name || 'Unknown';
+                    const branchId = sale.branchId?._id || sale.branchId;
+                    const branchName = sale.branchId?.name || 'Unknown';
+                    const key = `${deptId}-${branchId}`;
+                    
+                    if (!reportData[key]) {
+                        reportData[key] = {
+                            department: deptName,
+                            branch: branchName,
+                            grossSale: 0,
+                            discount: 0,
+                            return: 0,
+                            gst: 0,
+                            netSale: 0
+                        };
+                    }
+                    
+                    reportData[key].grossSale += sale.grossSale || 0;
+                    reportData[key].discount += sale.discount || 0;
+                    reportData[key].return += sale.return || 0;
+                    reportData[key].gst += sale.gst || 0;
+                    reportData[key].netSale += sale.netSale || 0;
+                });
+                
+                // Calculate profit margin (assuming cost = grossSale - netSale for simplicity)
+                // Profit Margin = (Net Sale - Cost) / Net Sale * 100
+                Object.values(reportData).forEach(item => {
+                    const cost = item.grossSale - item.netSale;
+                    item.profitMargin = item.netSale > 0 ? ((item.netSale - cost) / item.netSale * 100) : 0;
+                });
+                
+                // Sort by net sale descending
+                const sortedData = Object.values(reportData).sort((a, b) => b.netSale - a.netSale);
+                
+                // Update table
+                const tableBody = document.getElementById('deptComparisonReportTableBody');
+                tableBody.innerHTML = '';
+                
+                if (sortedData.length === 0) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="10" class="text-center text-muted py-4">
+                                <i class="fas fa-info-circle me-2"></i>
+                                No data available for the selected filters
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    sortedData.forEach((item, index) => {
+                        const saleValue = item.grossSale - item.discount - item.return;
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${index + 1}</td>
+                            <td>${item.department}</td>
+                            <td>${item.branch}</td>
+                            <td class="text-end">${item.grossSale.toLocaleString()}</td>
+                            <td class="text-end">${item.discount.toLocaleString()}</td>
+                            <td class="text-end">${item.return.toLocaleString()}</td>
+                            <td class="text-end">${saleValue.toLocaleString()}</td>
+                            <td class="text-end">${item.gst.toLocaleString()}</td>
+                            <td class="text-end" style="font-weight: 700;">${item.netSale.toLocaleString()}</td>
+                            <td class="text-end">${item.profitMargin.toFixed(2)}%</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                }
+            }).catch(error => {
+                console.error('Error generating department comparison report:', error);
+                showNotification('Failed to generate department comparison report', 'error');
+            });
+        }
+        
+        // Generate Branch-Wise Sale Comparison Report
+        function generateBranchComparisonReport() {
+            const dateFrom = document.getElementById('branchComparisonReportDateFrom').value;
+            const dateTo = document.getElementById('branchComparisonReportDateTo').value;
+            const categoryId = document.getElementById('branchComparisonReportCategory').value;
+            const departmentId = document.getElementById('branchComparisonReportDepartment').value;
+            
+            // Require at least one date to be selected
+            if (!dateFrom && !dateTo) {
+                showNotification('Please select at least one date (From or To) to generate the report', 'error');
+                return;
+            }
+            
+            // Update subtitle based on filters
+            const subtitle = document.getElementById('branchComparisonReportSubtitle');
+            let subtitleText = '';
+            if (categoryId) {
+                const category = appData.categories?.find(c => c._id === categoryId);
+                if (category) subtitleText += `🏷️ ${category.name}`;
+            }
+            if (departmentId) {
+                const dept = appData.departments?.find(d => d._id === departmentId);
+                if (dept) subtitleText += (subtitleText ? ' | ' : '') + `🏢 ${dept.name}`;
+            }
+            if (subtitleText) {
+                subtitle.style.display = 'block';
+                subtitle.textContent = subtitleText;
+            } else {
+                subtitle.style.display = 'none';
+            }
+            
+            // Use getDepartmentSales for department-based filtering, or getSales for category-based
+            let apiCall;
+            const filters = {};
+            if (dateFrom) filters.from = dateFrom;
+            if (dateTo) filters.to = dateTo;
+            
+            if (departmentId) {
+                filters.departmentId = departmentId;
+                apiCall = api.getDepartmentSales(filters);
+            } else {
+                if (categoryId) filters.categoryId = categoryId;
+                apiCall = api.getSales(filters);
+            }
+            
+            apiCall.then(data => {
+                // Group by branch
+                const reportData = {};
+                
+                data.forEach(sale => {
+                    let branchId, branchName;
+                    
+                    if (sale.branchId) {
+                        branchId = sale.branchId._id || sale.branchId;
+                        branchName = sale.branchId.name || 'Unknown';
+                    } else {
+                        return; // Skip if no branch
+                    }
+                    
+                    if (!reportData[branchId]) {
+                        reportData[branchId] = {
+                            branch: branchName,
+                            grossSale: 0,
+                            discount: 0,
+                            return: 0,
+                            gst: 0,
+                            netSale: 0
+                        };
+                    }
+                    
+                    // Handle both department sales format and regular sales format
+                    if (sale.grossSale !== undefined) {
+                        // Department sales format
+                        reportData[branchId].grossSale += sale.grossSale || 0;
+                        reportData[branchId].discount += sale.discount || 0;
+                        reportData[branchId].return += sale.return || 0;
+                        reportData[branchId].gst += sale.gst || 0;
+                        reportData[branchId].netSale += sale.netSale || 0;
+                    } else if (sale.total !== undefined) {
+                        // Regular sales format - convert to department sales format
+                        const grossSale = sale.total || 0;
+                        const cost = sale.costTotal || 0;
+                        const netSale = grossSale - cost;
+                        reportData[branchId].grossSale += grossSale;
+                        reportData[branchId].netSale += netSale;
+                        // Estimate discount and return (not available in regular sales)
+                        reportData[branchId].discount += 0;
+                        reportData[branchId].return += 0;
+                        reportData[branchId].gst += 0;
+                    }
+                });
+                
+                // Filter by category if specified (for regular sales)
+                if (categoryId && !departmentId) {
+                    // This would need additional filtering if using getSales
+                    // For now, we'll use the data as is
+                }
+                
+                // Calculate profit margin
+                Object.values(reportData).forEach(item => {
+                    const cost = item.grossSale - item.netSale;
+                    item.profitMargin = item.netSale > 0 ? ((item.netSale - cost) / item.netSale * 100) : 0;
+                });
+                
+                // Sort by net sale descending
+                const sortedData = Object.values(reportData).sort((a, b) => b.netSale - a.netSale);
+                
+                // Update table
+                const tableBody = document.getElementById('branchComparisonReportTableBody');
+                tableBody.innerHTML = '';
+                
+                if (sortedData.length === 0) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="9" class="text-center text-muted py-4">
+                                <i class="fas fa-info-circle me-2"></i>
+                                No data available for the selected filters
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    sortedData.forEach((item, index) => {
+                        const saleValue = item.grossSale - item.discount - item.return;
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${index + 1}</td>
+                            <td>${item.branch}</td>
+                            <td class="text-end">${item.grossSale.toLocaleString()}</td>
+                            <td class="text-end">${item.discount.toLocaleString()}</td>
+                            <td class="text-end">${item.return.toLocaleString()}</td>
+                            <td class="text-end">${saleValue.toLocaleString()}</td>
+                            <td class="text-end">${item.gst.toLocaleString()}</td>
+                            <td class="text-end" style="font-weight: 700;">${item.netSale.toLocaleString()}</td>
+                            <td class="text-end">${item.profitMargin.toFixed(2)}%</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                }
+            }).catch(error => {
+                console.error('Error generating branch comparison report:', error);
+                showNotification('Failed to generate branch comparison report', 'error');
+            });
+        }
+        
+        // Print Shop Report (Department-wise)
+        function printShopReport() {
+            const dateFrom = document.getElementById('shopReportDateFrom').value;
+            const dateTo = document.getElementById('shopReportDateTo').value;
+            const branchId = document.getElementById('shopReportBranch').value;
+            const departmentId = document.getElementById('shopReportDepartment').value;
+            
+            const branch = branchId ? appData.branches.find(b => b._id === branchId) : null;
+            const branchName = branch ? branch.name : 'All Branches';
+            const branchAddress = branch ? branch.address : '';
+            
+            const dept = departmentId ? appData.departments?.find(d => d._id === departmentId) : null;
+            const deptName = dept ? dept.name : 'All Departments';
+            
+            // Get summary values
+            const summaryGrossSale = document.getElementById('summaryGrossSale')?.textContent || '0';
+            const summaryDiscount = document.getElementById('summaryTotalDiscount')?.textContent || '0';
+            const summaryReturn = document.getElementById('summaryTotalReturn')?.textContent || '0';
+            const summaryGST = document.getElementById('summaryTotalGST')?.textContent || '0';
+            const summaryNetSale = document.getElementById('summaryNetSale')?.textContent || '0';
+            
+            const currentDate = new Date().toLocaleDateString('en-GB');
+            const dateRange = dateFrom && dateTo ? 
+                `${new Date(dateFrom).toLocaleDateString('en-GB')} - ${new Date(dateTo).toLocaleDateString('en-GB')}` : 
+                (dateFrom ? `From ${new Date(dateFrom).toLocaleDateString('en-GB')}` : 
+                (dateTo ? `Until ${new Date(dateTo).toLocaleDateString('en-GB')}` : 'All Time'));
+            
+            const tableBody = document.getElementById('shopReportTableBody');
+            const tableRows = tableBody ? tableBody.innerHTML : '<tr><td colspan="7" class="text-center">No data available</td></tr>';
+            
+            const printContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Shop Report - Department Wise</title>
+    <style>
+        * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        
+        @page {
+            size: A4;
+            margin: 1in;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            font-size: 11pt;
+            line-height: 1.5;
+            color: #000;
+            background: #fff;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .print-header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #2c6e8a;
+            padding-bottom: 15px;
+        }
+        
+        .print-header h1 {
+            font-size: 28pt;
+            font-weight: bold;
+            margin: 0 0 10px 0;
+            color: #2c6e8a;
+        }
+        
+        .print-header .company-info {
+            font-size: 11pt;
+            color: #555;
+            margin: 5px 0;
+        }
+        
+        .print-header .report-info {
+            font-size: 10pt;
+            color: #555;
+            margin: 10px 0 0 0;
+            text-align: left;
+            display: inline-block;
+        }
+        
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .summary-card {
+            background: linear-gradient(135deg, #2c6e8a 0%, #4fb3d9 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .summary-card h4 {
+            margin: 0 0 10px 0;
+            font-size: 11pt;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .summary-card .value {
+            font-size: 22pt;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .net-sale-card {
+            background: linear-gradient(135deg, #4D4D4D 0%, #6c757d 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .net-sale-card h4 {
+            margin: 0 0 15px 0;
+            font-size: 14pt;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .net-sale-card .value {
+            font-size: 32pt;
+            font-weight: bold;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 10pt;
+        }
+        
+        th {
+            background-color: #2c6e8a;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #1a4d63;
+            font-weight: bold;
+        }
+        
+        td {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .text-right {
+            text-align: right;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .print-footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 9pt;
+            color: #666;
+            border-top: 1px solid #ccc;
+            padding-top: 15px;
+        }
+        
+        @media print {
+            body {
+                padding: 0;
+            }
+            
+            .summary-cards {
+                page-break-inside: avoid;
+            }
+            
+            table {
+                page-break-inside: auto;
+            }
+            
+            tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="print-header">
+        <h1>D.Watson Group Of Pharmacies</h1>
+        <div class="company-info">Shop Report - Department Wise</div>
+        ${branchName && branchName !== 'All Branches' ? `<h2 style="text-align: center; margin: 15px 0; font-size: 20pt; font-weight: 600;">${branchName}</h2>` : ''}
+        <div class="report-info">
+            ${branchAddress ? `<strong>Address:</strong> ${branchAddress}<br>` : ''}
+            <strong>Department:</strong> ${deptName}<br>
+            <strong>Period:</strong> ${dateRange}<br>
+            <strong>Generated:</strong> ${currentDate}
+        </div>
+    </div>
+    
+    <div class="summary-cards">
+        <div class="summary-card">
+            <h4>Gross Sale</h4>
+            <div class="value">${summaryGrossSale}</div>
+        </div>
+        <div class="summary-card" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);">
+            <h4>Total Discount</h4>
+            <div class="value">${summaryDiscount}</div>
+        </div>
+        <div class="summary-card" style="background: linear-gradient(135deg, #CF2A2A 0%, #ff6b6b 100%);">
+            <h4>Total Return</h4>
+            <div class="value">${summaryReturn}</div>
+        </div>
+        <div class="summary-card" style="background: linear-gradient(135deg, #136F63 0%, #17a2b8 100%);">
+            <h4>Total GST</h4>
+            <div class="value">${summaryGST}</div>
+        </div>
+    </div>
+    
+    <div class="net-sale-card">
+        <h4>Net Sale</h4>
+        <div class="value">${summaryNetSale}</div>
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Department</th>
+                <th>Branch</th>
+                <th class="text-right">Gross Sale</th>
+                <th class="text-right">Discount</th>
+                <th class="text-right">Return</th>
+                <th class="text-right">GST</th>
+                <th class="text-right">Net Sale</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${tableRows}
+        </tbody>
+    </table>
+    
+    <div class="print-footer">
+        <p>This report was generated on ${currentDate} by D.Watson Pharmacy Management System</p>
+        <p>For any queries, please contact the management</p>
+    </div>
+</body>
+</html>
+            `;
+            
+            try {
+                const previewWindow = window.open('', '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+                if (!previewWindow) {
+                    throw new Error('Popup blocked. Please allow popups for this site.');
+                }
+                previewWindow.document.write(printContent);
+                previewWindow.document.close();
+                
+                previewWindow.onload = function() {
+                    setTimeout(() => {
+                        previewWindow.print();
+                    }, 250);
+                };
+            } catch (error) {
+                console.error('Print error:', error);
+                showNotification('Print failed: ' + error.message, 'error');
+            }
+        }
+        
+        // Print Department-Wise Report
+        function printDeptWiseReport() {
+            const dateFrom = document.getElementById('deptWiseReportDateFrom').value;
+            const dateTo = document.getElementById('deptWiseReportDateTo').value;
+            const branchId = document.getElementById('deptWiseReportBranch').value;
+            const departmentId = document.getElementById('deptWiseReportDepartment').value;
+            
+            const branch = branchId ? appData.branches.find(b => b._id === branchId) : null;
+            const branchName = branch ? branch.name : 'All Branches';
+            const branchAddress = branch ? branch.address : '';
+            
+            // Get branch name from heading if available
+            const branchNameHeading = document.getElementById('deptWiseReportBranchName');
+            const displayedBranchName = branchNameHeading && branchNameHeading.style.display !== 'none' 
+                ? branchNameHeading.textContent 
+                : (branchName !== 'All Branches' ? branchName : '');
+            
+            const dept = departmentId ? appData.departments?.find(d => d._id === departmentId) : null;
+            const deptName = dept ? dept.name : 'All Departments';
+            
+            // Get summary values
+            const summaryGrossSale = document.getElementById('deptWiseSummaryGrossSale')?.textContent || '0';
+            const summaryDiscount = document.getElementById('deptWiseSummaryTotalDiscount')?.textContent || '0';
+            const summaryReturn = document.getElementById('deptWiseSummaryTotalReturn')?.textContent || '0';
+            const summaryGST = document.getElementById('deptWiseSummaryTotalGST')?.textContent || '0';
+            const summaryNetSale = document.getElementById('deptWiseSummaryNetSale')?.textContent || '0';
+            
+            const currentDate = new Date().toLocaleDateString('en-GB');
+            const dateRange = dateFrom && dateTo ? 
+                `${new Date(dateFrom).toLocaleDateString('en-GB')} - ${new Date(dateTo).toLocaleDateString('en-GB')}` : 
+                (dateFrom ? `From ${new Date(dateFrom).toLocaleDateString('en-GB')}` : 
+                (dateTo ? `Until ${new Date(dateTo).toLocaleDateString('en-GB')}` : 'All Time'));
+            
+            const tableBody = document.getElementById('deptWiseReportTableBody');
+            const tableRows = tableBody ? tableBody.innerHTML : '<tr><td colspan="9" class="text-center">No data available</td></tr>';
+            
+            const printContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Department-Wise Report</title>
+    <style>
+        * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        
+        @page {
+            size: A4;
+            margin: 1in;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            font-size: 11pt;
+            line-height: 1.5;
+            color: #000;
+            background: #fff;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .print-header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #2c6e8a;
+            padding-bottom: 15px;
+        }
+        
+        .print-header h1 {
+            font-size: 28pt;
+            font-weight: bold;
+            margin: 0 0 10px 0;
+            color: #2c6e8a;
+        }
+        
+        .print-header .company-info {
+            font-size: 11pt;
+            color: #555;
+            margin: 5px 0;
+        }
+        
+        .print-header .report-info {
+            font-size: 10pt;
+            color: #555;
+            margin: 10px 0 0 0;
+            text-align: left;
+            display: inline-block;
+        }
+        
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .summary-card {
+            background: linear-gradient(135deg, #2c6e8a 0%, #4fb3d9 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .summary-card h4 {
+            margin: 0 0 10px 0;
+            font-size: 12pt;
+            font-weight: 600;
+        }
+        
+        .summary-card .value {
+            font-size: 20pt;
+            font-weight: bold;
+        }
+        
+        .net-sale-card {
+            background: linear-gradient(135deg, #4D4D4D 0%, #6c757d 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .net-sale-card h4 {
+            margin: 0 0 15px 0;
+            font-size: 14pt;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .net-sale-card .value {
+            font-size: 32pt;
+            font-weight: bold;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 10pt;
+        }
+        
+        th {
+            background-color: #2c6e8a;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #1a4d63;
+            font-weight: bold;
+        }
+        
+        td {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .text-right {
+            text-align: right;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .print-footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 9pt;
+            color: #666;
+            border-top: 1px solid #ccc;
+            padding-top: 15px;
+        }
+        
+        @media print {
+            body {
+                padding: 0;
+            }
+            
+            .summary-cards {
+                page-break-inside: avoid;
+            }
+            
+            table {
+                page-break-inside: auto;
+            }
+            
+            tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="print-header">
+        <h1>D.Watson Group Of Pharmacies</h1>
+        <div class="company-info">Department-Wise Report</div>
+        ${displayedBranchName ? `<h2 style="text-align: center; margin: 15px 0; font-size: 20pt; font-weight: 600;">${displayedBranchName}</h2>` : ''}
+        <div class="report-info">
+            ${branchAddress ? `<strong>Address:</strong> ${branchAddress}<br>` : ''}
+            <strong>Department:</strong> ${deptName}<br>
+            <strong>Period:</strong> ${dateRange}<br>
+            <strong>Generated:</strong> ${currentDate}
+        </div>
+    </div>
+    
+    <div class="summary-cards">
+        <div class="summary-card">
+            <h4>Gross Sale</h4>
+            <div class="value">${summaryGrossSale}</div>
+        </div>
+        <div class="summary-card" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);">
+            <h4>Total Discount</h4>
+            <div class="value">${summaryDiscount}</div>
+        </div>
+        <div class="summary-card" style="background: linear-gradient(135deg, #CF2A2A 0%, #ff6b6b 100%);">
+            <h4>Total Return</h4>
+            <div class="value">${summaryReturn}</div>
+        </div>
+        <div class="summary-card" style="background: linear-gradient(135deg, #136F63 0%, #17a2b8 100%);">
+            <h4>Total GST</h4>
+            <div class="value">${summaryGST}</div>
+        </div>
+    </div>
+    
+    <div class="net-sale-card">
+        <h4>Net Sale</h4>
+        <div class="value">${summaryNetSale}</div>
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Department</th>
+                <th class="text-right">Gross Sale</th>
+                <th class="text-right">Discount Value</th>
+                <th class="text-right">Discount %</th>
+                <th class="text-right">Return</th>
+                <th class="text-right">Sale Value</th>
+                <th class="text-right">GST</th>
+                <th class="text-right">Net Sale</th>
+                <th class="text-right">Daily Sale Average</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${tableRows}
+        </tbody>
+    </table>
+    
+    <div class="print-footer">
+        <p>Generated on ${currentDate} | D.Watson Group Of Pharmacies</p>
+    </div>
+</body>
+</html>`;
+            
+            try {
+                const previewWindow = window.open('', '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+                if (!previewWindow) {
+                    throw new Error('Popup blocked. Please allow popups for this site.');
+                }
+                previewWindow.document.write(printContent);
+                previewWindow.document.close();
+                
+                previewWindow.onload = function() {
+                    setTimeout(() => {
+                        previewWindow.print();
+                    }, 250);
+                };
+            } catch (error) {
+                console.error('Print error:', error);
+                showNotification('Print failed: ' + error.message, 'error');
+            }
+        }
+        
+        // Print Sub-Department-Wise Report
+        function printSubDeptWiseReport() {
+            const dateFrom = document.getElementById('subDeptWiseReportDateFrom').value;
+            const dateTo = document.getElementById('subDeptWiseReportDateTo').value;
+            const branchId = document.getElementById('subDeptWiseReportBranch').value;
+            const departmentId = document.getElementById('subDeptWiseReportDepartment').value;
+            const subDepartmentId = document.getElementById('subDeptWiseReportSubDepartment').value;
+            
+            const branch = branchId ? appData.branches.find(b => b._id === branchId) : null;
+            const branchName = branch ? branch.name : 'All Branches';
+            const branchAddress = branch ? branch.address : '';
+            
+            // Get branch name from heading if available
+            const branchNameHeading = document.getElementById('subDeptWiseReportBranchName');
+            const displayedBranchName = branchNameHeading && branchNameHeading.style.display !== 'none' 
+                ? branchNameHeading.textContent 
+                : (branchName !== 'All Branches' ? branchName : '');
+            
+            const dept = departmentId ? appData.departments?.find(d => d._id === departmentId) : null;
+            const deptName = dept ? dept.name : 'All Departments';
+            
+            const subDept = subDepartmentId ? appData.subDepartments?.find(sd => sd._id === subDepartmentId) : null;
+            const subDeptName = subDept ? subDept.name : 'All Sub-Departments';
+            
+            // Get summary values
+            const summaryGrossSale = document.getElementById('subDeptWiseSummaryGrossSale')?.textContent || '0';
+            const summaryDiscount = document.getElementById('subDeptWiseSummaryTotalDiscount')?.textContent || '0';
+            const summaryReturn = document.getElementById('subDeptWiseSummaryTotalReturn')?.textContent || '0';
+            const summaryGST = document.getElementById('subDeptWiseSummaryTotalGST')?.textContent || '0';
+            const summaryNetSale = document.getElementById('subDeptWiseSummaryNetSale')?.textContent || '0';
+            
+            const currentDate = new Date().toLocaleDateString('en-GB');
+            const dateRange = dateFrom && dateTo ? 
+                `${new Date(dateFrom).toLocaleDateString('en-GB')} - ${new Date(dateTo).toLocaleDateString('en-GB')}` : 
+                (dateFrom ? `From ${new Date(dateFrom).toLocaleDateString('en-GB')}` : 
+                (dateTo ? `Until ${new Date(dateTo).toLocaleDateString('en-GB')}` : 'All Time'));
+            
+            const tableBody = document.getElementById('subDeptWiseReportTableBody');
+            const tableRows = tableBody ? tableBody.innerHTML : '<tr><td colspan="10" class="text-center">No data available</td></tr>';
+            
+            const printContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Sub-Department-Wise Report</title>
+    <style>
+        * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        
+        @page {
+            size: A4;
+            margin: 1in;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            font-size: 11pt;
+            line-height: 1.5;
+            color: #000;
+            background: #fff;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .print-header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #2c6e8a;
+            padding-bottom: 15px;
+        }
+        
+        .print-header h1 {
+            font-size: 28pt;
+            font-weight: bold;
+            margin: 0 0 10px 0;
+            color: #2c6e8a;
+        }
+        
+        .print-header .company-info {
+            font-size: 11pt;
+            color: #555;
+            margin: 5px 0;
+        }
+        
+        .print-header .report-info {
+            font-size: 10pt;
+            color: #555;
+            margin: 10px 0 0 0;
+            text-align: left;
+            display: inline-block;
+        }
+        
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .summary-card {
+            background: linear-gradient(135deg, #2c6e8a 0%, #4fb3d9 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .summary-card h4 {
+            margin: 0 0 10px 0;
+            font-size: 12pt;
+            font-weight: 600;
+        }
+        
+        .summary-card .value {
+            font-size: 20pt;
+            font-weight: bold;
+        }
+        
+        .net-sale-card {
+            background: linear-gradient(135deg, #4D4D4D 0%, #6c757d 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .net-sale-card h4 {
+            margin: 0 0 15px 0;
+            font-size: 14pt;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .net-sale-card .value {
+            font-size: 32pt;
+            font-weight: bold;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 10pt;
+        }
+        
+        th {
+            background-color: #2c6e8a;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #1a4d63;
+            font-weight: bold;
+        }
+        
+        td {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .text-right {
+            text-align: right;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .print-footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 9pt;
+            color: #666;
+            border-top: 1px solid #ccc;
+            padding-top: 15px;
+        }
+        
+        @media print {
+            body {
+                padding: 0;
+            }
+            
+            .summary-cards {
+                page-break-inside: avoid;
+            }
+            
+            table {
+                page-break-inside: auto;
+            }
+            
+            tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="print-header">
+        <h1>D.Watson Group Of Pharmacies</h1>
+        <div class="company-info">Sub-Department-Wise Report</div>
+        ${displayedBranchName ? `<h2 style="text-align: center; margin: 15px 0; font-size: 20pt; font-weight: 600;">${displayedBranchName}</h2>` : ''}
+        <div class="report-info">
+            ${branchAddress ? `<strong>Address:</strong> ${branchAddress}<br>` : ''}
+            <strong>Department:</strong> ${deptName}<br>
+            <strong>Sub-Department:</strong> ${subDeptName}<br>
+            <strong>Period:</strong> ${dateRange}<br>
+            <strong>Generated:</strong> ${currentDate}
+        </div>
+    </div>
+    
+    <div class="summary-cards">
+        <div class="summary-card">
+            <h4>Gross Sale</h4>
+            <div class="value">${summaryGrossSale}</div>
+        </div>
+        <div class="summary-card" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);">
+            <h4>Total Discount</h4>
+            <div class="value">${summaryDiscount}</div>
+        </div>
+        <div class="summary-card" style="background: linear-gradient(135deg, #CF2A2A 0%, #ff6b6b 100%);">
+            <h4>Total Return</h4>
+            <div class="value">${summaryReturn}</div>
+        </div>
+        <div class="summary-card" style="background: linear-gradient(135deg, #136F63 0%, #17a2b8 100%);">
+            <h4>Total GST</h4>
+            <div class="value">${summaryGST}</div>
+        </div>
+    </div>
+    
+    <div class="net-sale-card">
+        <h4>Net Sale</h4>
+        <div class="value">${summaryNetSale}</div>
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Sub-Department</th>
+                <th>Department</th>
+                <th>Branch</th>
+                <th class="text-right">Gross Sale</th>
+                <th class="text-right">Discount</th>
+                <th class="text-right">Return</th>
+                <th class="text-right">Sale Value</th>
+                <th class="text-right">GST</th>
+                <th class="text-right">Net Sale</th>
+                <th class="text-right">Daily Sale Average</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${tableRows}
+        </tbody>
+    </table>
+    
+    <div class="print-footer">
+        <p>Generated on ${currentDate} | D.Watson Group Of Pharmacies</p>
+    </div>
+</body>
+</html>`;
+            
+            try {
+                const previewWindow = window.open('', '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+                if (!previewWindow) {
+                    throw new Error('Popup blocked. Please allow popups for this site.');
+                }
+                previewWindow.document.write(printContent);
+                previewWindow.document.close();
+                
+                previewWindow.onload = function() {
+                    setTimeout(() => {
+                        previewWindow.print();
+                    }, 250);
+                };
+            } catch (error) {
+                console.error('Print error:', error);
+                showNotification('Print failed: ' + error.message, 'error');
+            }
+        }
+        
+        // Print Department-Wise Sale Comparison Report
+        function printDeptComparisonReport() {
+            const dateFrom = document.getElementById('deptComparisonReportDateFrom').value;
+            const dateTo = document.getElementById('deptComparisonReportDateTo').value;
+            const branchId = document.getElementById('deptComparisonReportBranch').value;
+            const departmentId = document.getElementById('deptComparisonReportDepartment').value;
+            
+            const branch = branchId ? appData.branches.find(b => b._id === branchId) : null;
+            const branchName = branch ? branch.name : 'All Branches';
+            const branchAddress = branch ? branch.address : '';
+            
+            const dept = departmentId ? appData.departments?.find(d => d._id === departmentId) : null;
+            const deptName = dept ? dept.name : 'All Departments';
+            
+            const currentDate = new Date().toLocaleDateString('en-GB');
+            const dateRange = dateFrom && dateTo ? 
+                `${new Date(dateFrom).toLocaleDateString('en-GB')} - ${new Date(dateTo).toLocaleDateString('en-GB')}` : 
+                (dateFrom ? `From ${new Date(dateFrom).toLocaleDateString('en-GB')}` : 
+                (dateTo ? `Until ${new Date(dateTo).toLocaleDateString('en-GB')}` : 'All Time'));
+            
+            const tableBody = document.getElementById('deptComparisonReportTableBody');
+            const tableRows = tableBody ? tableBody.innerHTML : '<tr><td colspan="10" class="text-center">No data available</td></tr>';
+            
+            const printContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Department-Wise Sale Comparison</title>
+    <style>
+        * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        
+        @page {
+            size: A4;
+            margin: 1in;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            font-size: 11pt;
+            line-height: 1.5;
+            color: #000;
+            background: #fff;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .print-header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #2c6e8a;
+            padding-bottom: 15px;
+        }
+        
+        .print-header h1 {
+            font-size: 28pt;
+            font-weight: bold;
+            margin: 0 0 10px 0;
+            color: #2c6e8a;
+        }
+        
+        .print-header .company-info {
+            font-size: 11pt;
+            color: #555;
+            margin: 5px 0;
+        }
+        
+        .print-header .report-info {
+            font-size: 10pt;
+            color: #555;
+            margin: 10px 0 0 0;
+            text-align: left;
+            display: inline-block;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 10pt;
+        }
+        
+        th {
+            background-color: #2c6e8a;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #1a4d63;
+            font-weight: bold;
+        }
+        
+        td {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .text-right {
+            text-align: right;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .print-footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 9pt;
+            color: #666;
+            border-top: 1px solid #ccc;
+            padding-top: 15px;
+        }
+        
+        @media print {
+            body {
+                padding: 0;
+            }
+            
+            table {
+                page-break-inside: auto;
+            }
+            
+            tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="print-header">
+        <h1>D.Watson Group Of Pharmacies</h1>
+        <div class="company-info">Department-Wise Sale Comparison</div>
+        <div class="report-info">
+            ${branchAddress ? `<strong>Address:</strong> ${branchAddress}<br>` : ''}
+            <strong>Branch:</strong> ${branchName}<br>
+            <strong>Department:</strong> ${deptName}<br>
+            <strong>Period:</strong> ${dateRange}<br>
+            <strong>Generated:</strong> ${currentDate}
+        </div>
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Department</th>
+                <th>Branch</th>
+                <th class="text-right">Gross Sale</th>
+                <th class="text-right">Discount</th>
+                <th class="text-right">Return</th>
+                <th class="text-right">Sale Value</th>
+                <th class="text-right">GST</th>
+                <th class="text-right">Net Sale</th>
+                <th class="text-right">Profit Margin %</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${tableRows}
+        </tbody>
+    </table>
+    
+    <div class="print-footer">
+        <p>Generated on ${currentDate} | D.Watson Group Of Pharmacies</p>
+    </div>
+</body>
+</html>`;
+            
+            try {
+                const previewWindow = window.open('', '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+                if (!previewWindow) {
+                    throw new Error('Popup blocked. Please allow popups for this site.');
+                }
+                previewWindow.document.write(printContent);
+                previewWindow.document.close();
+                
+                previewWindow.onload = function() {
+                    setTimeout(() => {
+                        previewWindow.print();
+                    }, 250);
+                };
+            } catch (error) {
+                console.error('Print error:', error);
+                showNotification('Print failed: ' + error.message, 'error');
+            }
+        }
+        
+        // Print Branch-Wise Sale Comparison Report
+        function printBranchComparisonReport() {
+            const dateFrom = document.getElementById('branchComparisonReportDateFrom').value;
+            const dateTo = document.getElementById('branchComparisonReportDateTo').value;
+            const categoryId = document.getElementById('branchComparisonReportCategory').value;
+            const departmentId = document.getElementById('branchComparisonReportDepartment').value;
+            
+            const category = categoryId ? appData.categories?.find(c => c._id === categoryId) : null;
+            const categoryName = category ? category.name : 'All Categories';
+            
+            const dept = departmentId ? appData.departments?.find(d => d._id === departmentId) : null;
+            const deptName = dept ? dept.name : 'All Departments';
+            
+            const currentDate = new Date().toLocaleDateString('en-GB');
+            const dateRange = dateFrom && dateTo ? 
+                `${new Date(dateFrom).toLocaleDateString('en-GB')} - ${new Date(dateTo).toLocaleDateString('en-GB')}` : 
+                (dateFrom ? `From ${new Date(dateFrom).toLocaleDateString('en-GB')}` : 
+                (dateTo ? `Until ${new Date(dateTo).toLocaleDateString('en-GB')}` : 'All Time'));
+            
+            const tableBody = document.getElementById('branchComparisonReportTableBody');
+            const tableRows = tableBody ? tableBody.innerHTML : '<tr><td colspan="9" class="text-center">No data available</td></tr>';
+            
+            const printContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Branch-Wise Sale Comparison</title>
+    <style>
+        * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        
+        @page {
+            size: A4;
+            margin: 1in;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            font-size: 11pt;
+            line-height: 1.5;
+            color: #000;
+            background: #fff;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .print-header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #2c6e8a;
+            padding-bottom: 15px;
+        }
+        
+        .print-header h1 {
+            font-size: 28pt;
+            font-weight: bold;
+            margin: 0 0 10px 0;
+            color: #2c6e8a;
+        }
+        
+        .print-header .company-info {
+            font-size: 11pt;
+            color: #555;
+            margin: 5px 0;
+        }
+        
+        .print-header .report-info {
+            font-size: 10pt;
+            color: #555;
+            margin: 10px 0 0 0;
+            text-align: left;
+            display: inline-block;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 10pt;
+        }
+        
+        th {
+            background-color: #2c6e8a;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #1a4d63;
+            font-weight: bold;
+        }
+        
+        td {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .text-right {
+            text-align: right;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .print-footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 9pt;
+            color: #666;
+            border-top: 1px solid #ccc;
+            padding-top: 15px;
+        }
+        
+        @media print {
+            body {
+                padding: 0;
+            }
+            
+            table {
+                page-break-inside: auto;
+            }
+            
+            tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="print-header">
+        <h1>D.Watson Group Of Pharmacies</h1>
+        <div class="company-info">Branch-Wise Sale Comparison</div>
+        <div class="report-info">
+            <strong>Category:</strong> ${categoryName}<br>
+            <strong>Department:</strong> ${deptName}<br>
+            <strong>Period:</strong> ${dateRange}<br>
+            <strong>Generated:</strong> ${currentDate}
+        </div>
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Branch</th>
+                <th class="text-right">Gross Sale</th>
+                <th class="text-right">Discount</th>
+                <th class="text-right">Return</th>
+                <th class="text-right">Sale Value</th>
+                <th class="text-right">GST</th>
+                <th class="text-right">Net Sale</th>
+                <th class="text-right">Profit Margin %</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${tableRows}
+        </tbody>
+    </table>
+    
+    <div class="print-footer">
+        <p>Generated on ${currentDate} | D.Watson Group Of Pharmacies</p>
+    </div>
+</body>
+</html>`;
+            
+            try {
+                const previewWindow = window.open('', '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+                if (!previewWindow) {
+                    throw new Error('Popup blocked. Please allow popups for this site.');
+                }
+                previewWindow.document.write(printContent);
+                previewWindow.document.close();
+                
+                previewWindow.onload = function() {
+                    setTimeout(() => {
+                        previewWindow.print();
+                    }, 250);
+                };
+            } catch (error) {
+                console.error('Print error:', error);
+                showNotification('Print failed: ' + error.message, 'error');
+            }
+        }
+        
+        // Print Shop Sub-Department Report
+        function printShopSubDeptReport() {
+            const dateFrom = document.getElementById('shopReportDateFrom').value;
+            const dateTo = document.getElementById('shopReportDateTo').value;
+            const branchId = document.getElementById('shopReportBranch').value;
+            const departmentId = document.getElementById('shopReportDepartment').value;
+            const subDepartmentId = document.getElementById('shopReportSubDepartment').value;
+            
+            const branch = branchId ? appData.branches.find(b => b._id === branchId) : null;
+            const branchName = branch ? branch.name : 'All Branches';
+            const branchAddress = branch ? branch.address : '';
+            
+            const dept = departmentId ? appData.departments?.find(d => d._id === departmentId) : null;
+            const deptName = dept ? dept.name : 'All Departments';
+            
+            const subDept = subDepartmentId ? appData.subDepartments?.find(sd => sd._id === subDepartmentId) : null;
+            const subDeptName = subDept ? subDept.name : 'All Sub-Departments';
+            
+            // Get summary values
+            const summaryGrossSale = document.getElementById('summaryGrossSale')?.textContent || '0';
+            const summaryDiscount = document.getElementById('summaryTotalDiscount')?.textContent || '0';
+            const summaryReturn = document.getElementById('summaryTotalReturn')?.textContent || '0';
+            const summaryGST = document.getElementById('summaryTotalGST')?.textContent || '0';
+            const summaryNetSale = document.getElementById('summaryNetSale')?.textContent || '0';
+            
+            const currentDate = new Date().toLocaleDateString('en-GB');
+            const dateRange = dateFrom && dateTo ? 
+                `${new Date(dateFrom).toLocaleDateString('en-GB')} - ${new Date(dateTo).toLocaleDateString('en-GB')}` : 
+                (dateFrom ? `From ${new Date(dateFrom).toLocaleDateString('en-GB')}` : 
+                (dateTo ? `Until ${new Date(dateTo).toLocaleDateString('en-GB')}` : 'All Time'));
+            
+            const tableBody = document.getElementById('shopSubDeptReportTableBody');
+            const tableRows = tableBody ? tableBody.innerHTML : '<tr><td colspan="8" class="text-center">No data available</td></tr>';
+            
+            const printContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Shop Report - Sub-Department Wise</title>
+    <style>
+        * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        
+        @page {
+            size: A4;
+            margin: 1in;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            font-size: 11pt;
+            line-height: 1.5;
+            color: #000;
+            background: #fff;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .print-header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #2c6e8a;
+            padding-bottom: 15px;
+        }
+        
+        .print-header h1 {
+            font-size: 28pt;
+            font-weight: bold;
+            margin: 0 0 10px 0;
+            color: #2c6e8a;
+        }
+        
+        .print-header .company-info {
+            font-size: 11pt;
+            color: #555;
+            margin: 5px 0;
+        }
+        
+        .print-header .report-info {
+            font-size: 10pt;
+            color: #555;
+            margin: 10px 0 0 0;
+            text-align: left;
+            display: inline-block;
+        }
+        
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .summary-card {
+            background: linear-gradient(135deg, #2c6e8a 0%, #4fb3d9 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .summary-card h4 {
+            margin: 0 0 10px 0;
+            font-size: 11pt;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .summary-card .value {
+            font-size: 22pt;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .net-sale-card {
+            background: linear-gradient(135deg, #4D4D4D 0%, #6c757d 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .net-sale-card h4 {
+            margin: 0 0 15px 0;
+            font-size: 14pt;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .net-sale-card .value {
+            font-size: 32pt;
+            font-weight: bold;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 10pt;
+        }
+        
+        th {
+            background-color: #2c6e8a;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #1a4d63;
+            font-weight: bold;
+        }
+        
+        td {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .text-right {
+            text-align: right;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .print-footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 9pt;
+            color: #666;
+            border-top: 1px solid #ccc;
+            padding-top: 15px;
+        }
+        
+        @media print {
+            body {
+                padding: 0;
+            }
+            
+            .summary-cards {
+                page-break-inside: avoid;
+            }
+            
+            table {
+                page-break-inside: auto;
+            }
+            
+            tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="print-header">
+        <h1>D.Watson Group Of Pharmacies</h1>
+        <div class="company-info">Shop Report - Sub-Department Wise</div>
+        ${branchName && branchName !== 'All Branches' ? `<h2 style="text-align: center; margin: 15px 0; font-size: 20pt; font-weight: 600;">${branchName}</h2>` : ''}
+        <div class="report-info">
+            ${branchAddress ? `<strong>Address:</strong> ${branchAddress}<br>` : ''}
+            <strong>Department:</strong> ${deptName}<br>
+            <strong>Sub-Department:</strong> ${subDeptName}<br>
+            <strong>Period:</strong> ${dateRange}<br>
+            <strong>Generated:</strong> ${currentDate}
+        </div>
+    </div>
+    
+    <div class="summary-cards">
+        <div class="summary-card">
+            <h4>Gross Sale</h4>
+            <div class="value">${summaryGrossSale}</div>
+        </div>
+        <div class="summary-card" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);">
+            <h4>Total Discount</h4>
+            <div class="value">${summaryDiscount}</div>
+        </div>
+        <div class="summary-card" style="background: linear-gradient(135deg, #CF2A2A 0%, #ff6b6b 100%);">
+            <h4>Total Return</h4>
+            <div class="value">${summaryReturn}</div>
+        </div>
+        <div class="summary-card" style="background: linear-gradient(135deg, #136F63 0%, #17a2b8 100%);">
+            <h4>Total GST</h4>
+            <div class="value">${summaryGST}</div>
+        </div>
+    </div>
+    
+    <div class="net-sale-card">
+        <h4>Net Sale</h4>
+        <div class="value">${summaryNetSale}</div>
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Sub-Department</th>
+                <th>Department</th>
+                <th>Branch</th>
+                <th class="text-right">Gross Sale</th>
+                <th class="text-right">Discount</th>
+                <th class="text-right">Return</th>
+                <th class="text-right">GST</th>
+                <th class="text-right">Net Sale</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${tableRows}
+        </tbody>
+    </table>
+    
+    <div class="print-footer">
+        <p>This report was generated on ${currentDate} by D.Watson Pharmacy Management System</p>
+        <p>For any queries, please contact the management</p>
+    </div>
+</body>
+</html>
+            `;
+            
+            try {
+                const previewWindow = window.open('', '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+                if (!previewWindow) {
+                    throw new Error('Popup blocked. Please allow popups for this site.');
+                }
+                previewWindow.document.write(printContent);
+                previewWindow.document.close();
+                
+                previewWindow.onload = function() {
+                    setTimeout(() => {
+                        previewWindow.print();
+                    }, 250);
+                };
+            } catch (error) {
+                console.error('Print error:', error);
+                showNotification('Print failed: ' + error.message, 'error');
+            }
         }
         
         // Generate sales comparison table
