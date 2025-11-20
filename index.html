@@ -35,6 +35,20 @@
             --sidebar-width: 240px;
         }
         
+        /* Large screen CSS variables */
+        @media (min-width: 1400px) {
+            :root {
+                --sidebar-width: 280px;
+            }
+        }
+        
+        /* Extra large screen CSS variables */
+        @media (min-width: 1920px) {
+            :root {
+                --sidebar-width: 300px;
+            }
+        }
+        
         /* ========================================
            PRINT STYLES SECTION
            ======================================== */
@@ -652,17 +666,45 @@
         /* Tablet responsive */
         @media (min-width: 768px) and (max-width: 1024px) {
             .sidebar {
-                width: 220px;
+                width: 240px;
+            }
+        }
+        
+        /* Large screen sidebar width */
+        @media (min-width: 1400px) {
+            .sidebar {
+                width: 280px;
+            }
+        }
+        
+        /* Extra large screen sidebar width */
+        @media (min-width: 1920px) {
+            .sidebar {
+                width: 300px;
             }
         }
         
         /* Sidebar Header */
         .sidebar-header {
-            padding: 20px 20px 15px 20px;
+            padding: 24px 24px 18px 24px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             border-bottom: none;
+        }
+        
+        /* Large screen header improvements */
+        @media (min-width: 1400px) {
+            .sidebar-header {
+                padding: 28px 28px 20px 28px;
+            }
+        }
+        
+        /* Tablet header adjustments */
+        @media (min-width: 768px) and (max-width: 1024px) {
+            .sidebar-header {
+                padding: 20px 20px 15px 20px;
+            }
         }
         
         /* Mobile header adjustments */
@@ -689,37 +731,101 @@
         }
         
         .sidebar-logo {
-            width: 32px;
-            height: 32px;
+            width: 36px;
+            height: 36px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: #ffffff;
-            font-size: 20px;
+            font-size: 22px;
+        }
+        
+        /* Large screen logo improvements */
+        @media (min-width: 1400px) {
+            .sidebar-logo {
+                width: 40px;
+                height: 40px;
+                font-size: 24px;
+            }
+        }
+        
+        /* Tablet logo adjustments */
+        @media (min-width: 768px) and (max-width: 1024px) {
+            .sidebar-logo {
+                width: 32px;
+                height: 32px;
+                font-size: 20px;
+            }
         }
         
         .sidebar-title {
             color: #ffffff;
-            font-size: 18px;
-            font-weight: 600;
+            font-size: 20px;
+            font-weight: 700;
             margin: 0;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Large screen title improvements */
+        @media (min-width: 1400px) {
+            .sidebar-title {
+                font-size: 22px;
+            }
+        }
+        
+        /* Tablet title adjustments */
+        @media (min-width: 768px) and (max-width: 1024px) {
+            .sidebar-title {
+                font-size: 18px;
+            }
         }
         
         /* Sidebar Search */
         .sidebar-search {
-            padding: 0 20px 15px 20px;
-            margin-bottom: 10px;
+            padding: 0 24px 18px 24px;
+            margin-bottom: 12px;
+        }
+        
+        /* Large screen search improvements */
+        @media (min-width: 1400px) {
+            .sidebar-search {
+                padding: 0 28px 20px 28px;
+                margin-bottom: 14px;
+            }
+        }
+        
+        /* Tablet search adjustments */
+        @media (min-width: 768px) and (max-width: 1024px) {
+            .sidebar-search {
+                padding: 0 20px 15px 20px;
+            }
         }
         
         .sidebar-search-input {
             width: 100%;
             background: #0f172a; /* Darker background for search input */
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 6px;
-            padding: 10px 12px 10px 40px;
+            border-radius: 8px;
+            padding: 12px 14px 12px 44px;
             color: #ffffff;
-            font-size: 14px;
+            font-size: 15px;
             transition: all 0.3s;
+        }
+        
+        /* Large screen search input improvements */
+        @media (min-width: 1400px) {
+            .sidebar-search-input {
+                padding: 14px 16px 14px 48px;
+                font-size: 16px;
+            }
+        }
+        
+        /* Tablet search input adjustments */
+        @media (min-width: 768px) and (max-width: 1024px) {
+            .sidebar-search-input {
+                padding: 10px 12px 10px 40px;
+                font-size: 14px;
+            }
         }
         
         .sidebar-search-input:focus {
@@ -851,7 +957,21 @@
         /* Sidebar Separator */
         .sidebar-separator {
             border-top: 1px dashed rgba(255, 255, 255, 0.15);
-            margin: 0 20px;
+            margin: 0 24px;
+        }
+        
+        /* Large screen separator improvements */
+        @media (min-width: 1400px) {
+            .sidebar-separator {
+                margin: 0 28px;
+            }
+        }
+        
+        /* Tablet separator adjustments */
+        @media (min-width: 768px) and (max-width: 1024px) {
+            .sidebar-separator {
+                margin: 0 20px;
+            }
         }
         
         /* Chevron icons for nav items */
@@ -889,19 +1009,36 @@
         }
         
         .sidebar-section-header {
-            padding: 12px 20px 8px 20px;
+            padding: 16px 24px 10px 24px;
             color: #888888;
-            font-size: 11px;
-            font-weight: 600;
+            font-size: 13px;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 4px;
+            letter-spacing: 1.2px;
+            margin-bottom: 6px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: space-between;
             transition: color 0.2s;
             user-select: none;
+        }
+        
+        /* Large screen improvements */
+        @media (min-width: 1400px) {
+            .sidebar-section-header {
+                padding: 18px 28px 12px 28px;
+                font-size: 14px;
+                letter-spacing: 1.5px;
+            }
+        }
+        
+        /* Tablet adjustments */
+        @media (min-width: 768px) and (max-width: 1024px) {
+            .sidebar-section-header {
+                padding: 14px 20px 9px 20px;
+                font-size: 12px;
+            }
         }
         
         /* Mobile section header adjustments */
@@ -975,7 +1112,21 @@
         /* Section separator */
         .sidebar-section-separator {
             border-top: 1px dashed rgba(255, 255, 255, 0.15);
-            margin: 8px 20px;
+            margin: 10px 24px;
+        }
+        
+        /* Large screen section separator improvements */
+        @media (min-width: 1400px) {
+            .sidebar-section-separator {
+                margin: 12px 28px;
+            }
+        }
+        
+        /* Tablet section separator adjustments */
+        @media (min-width: 768px) and (max-width: 1024px) {
+            .sidebar-section-separator {
+                margin: 8px 20px;
+            }
         }
         
         .sidebar-section-items {
@@ -1005,6 +1156,9 @@
             flex: 1;
             overflow-y: auto;
             overflow-x: hidden;
+            /* Ensure content doesn't overflow sidebar width */
+            max-width: 100%;
+            box-sizing: border-box;
         }
         
         /* Mobile content scroll improvements */
@@ -1022,18 +1176,50 @@
         }
         
         .sidebar-bottom-link {
-            padding: 10px 20px !important;
+            padding: 14px 24px !important;
+            font-size: 15px;
+            font-weight: 500;
+        }
+        
+        /* Large screen bottom link improvements */
+        @media (min-width: 1400px) {
+            .sidebar-bottom-link {
+                padding: 16px 28px !important;
+                font-size: 16px;
+            }
+        }
+        
+        /* Tablet bottom link adjustments */
+        @media (min-width: 768px) and (max-width: 1024px) {
+            .sidebar-bottom-link {
+                padding: 12px 20px !important;
+                font-size: 14px;
+            }
         }
         
         .sidebar-copyright {
-            padding: 15px 20px;
+            padding: 18px 24px;
             text-align: center;
+        }
+        
+        /* Large screen copyright improvements */
+        @media (min-width: 1400px) {
+            .sidebar-copyright {
+                padding: 20px 28px;
+            }
         }
         
         .sidebar-copyright p {
             color: #666666;
-            font-size: 11px;
+            font-size: 12px;
             margin: 0;
+        }
+        
+        /* Large screen copyright text */
+        @media (min-width: 1400px) {
+            .sidebar-copyright p {
+                font-size: 13px;
+            }
         }
         
         /* Mobile bottom section adjustments */
@@ -1054,16 +1240,32 @@
         
         .sidebar .nav-link {
             color: #ffffff;
-            padding: 10px 20px;
+            padding: 12px 24px;
             border-radius: 0;
             transition: all 0.2s;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
             background: transparent;
             border: none;
             position: relative;
             border-left: 3px solid transparent;
+        }
+        
+        /* Large screen improvements */
+        @media (min-width: 1400px) {
+            .sidebar .nav-link {
+                padding: 14px 28px;
+                gap: 16px;
+            }
+        }
+        
+        /* Tablet adjustments */
+        @media (min-width: 768px) and (max-width: 1024px) {
+            .sidebar .nav-link {
+                padding: 11px 20px;
+                gap: 12px;
+            }
         }
         
         /* Mobile nav link adjustments */
@@ -1094,9 +1296,18 @@
         /* Icon styling - simple white icons */
         .sidebar .nav-link i:not(.fa-chevron-down):not(.fa-chevron-right) {
             color: #ffffff;
-            font-size: 16px;
-            width: 20px;
+            font-size: 18px;
+            width: 22px;
             text-align: center;
+            transition: all 0.2s;
+        }
+        
+        /* Large screen icon improvements */
+        @media (min-width: 1400px) {
+            .sidebar .nav-link i:not(.fa-chevron-down):not(.fa-chevron-right) {
+                font-size: 20px;
+                width: 24px;
+            }
         }
         
         .sidebar .nav-link.active i:not(.fa-chevron-down):not(.fa-chevron-right) {
@@ -1184,12 +1395,29 @@
         /* Sidebar text */
         .sidebar .nav-link .sidebar-text {
             color: #ffffff;
-            font-size: 14px;
+            font-size: 15px;
+            font-weight: 500;
             flex: 1;
+            transition: color 0.2s;
+        }
+        
+        /* Large screen text improvements */
+        @media (min-width: 1400px) {
+            .sidebar .nav-link .sidebar-text {
+                font-size: 16px;
+            }
+        }
+        
+        /* Tablet text adjustments */
+        @media (min-width: 768px) and (max-width: 1024px) {
+            .sidebar .nav-link .sidebar-text {
+                font-size: 14px;
+            }
         }
         
         .sidebar .nav-link.active .sidebar-text {
             color: #ffd700;
+            font-weight: 600;
         }
         
         /* Expandable submenu styles */
@@ -1237,11 +1465,33 @@
         }
         
         .sidebar .nav-item .collapse .nav-link {
-            padding-left: 50px;
-            padding-top: 8px;
-            padding-bottom: 8px;
-            font-size: 13px;
+            padding-left: 56px;
+            padding-top: 10px;
+            padding-bottom: 10px;
+            padding-right: 24px;
+            font-size: 14px;
             color: #d0d0d0;
+            font-weight: 400;
+        }
+        
+        /* Large screen submenu improvements */
+        @media (min-width: 1400px) {
+            .sidebar .nav-item .collapse .nav-link {
+                padding-left: 64px;
+                padding-top: 12px;
+                padding-bottom: 12px;
+                padding-right: 28px;
+                font-size: 15px;
+            }
+        }
+        
+        /* Tablet submenu adjustments */
+        @media (min-width: 768px) and (max-width: 1024px) {
+            .sidebar .nav-item .collapse .nav-link {
+                padding-left: 50px;
+                padding-right: 20px;
+                font-size: 13px;
+            }
         }
         
         .sidebar .nav-item .collapse .nav-link:hover {
@@ -1250,8 +1500,16 @@
         }
         
         .sidebar .nav-item .collapse .nav-link i:not(.fa-chevron-down) {
-            font-size: 14px;
-            width: 18px;
+            font-size: 16px;
+            width: 20px;
+        }
+        
+        /* Large screen submenu icons */
+        @media (min-width: 1400px) {
+            .sidebar .nav-item .collapse .nav-link i:not(.fa-chevron-down) {
+                font-size: 17px;
+                width: 22px;
+            }
         }
         
         .sidebar .nav-item .collapse .nav-link .item-chevron {
@@ -1374,6 +1632,20 @@
             min-height: 100vh;
         }
         
+        /* Large screen main content adjustments */
+        @media (min-width: 1400px) {
+            .main-content {
+                margin-left: 280px;
+            }
+        }
+        
+        /* Extra large screen main content adjustments */
+        @media (min-width: 1920px) {
+            .main-content {
+                margin-left: 300px;
+            }
+        }
+        
         /* Adjust main content when sidebar is collapsed */
         body:has(.sidebar.collapsed) .main-content,
         .sidebar.collapsed ~ * .main-content {
@@ -1408,6 +1680,22 @@
             padding-bottom: 20px;
             padding-top: 0 !important; /* NO top padding - content starts from absolute top */
             margin-top: 0 !important;
+            /* Ensure proper margin to avoid sidebar overlap */
+            margin-left: var(--sidebar-width) !important;
+        }
+        
+        /* Large screen active content section adjustments */
+        @media (min-width: 1400px) {
+            .content-section.active {
+                margin-left: 280px !important;
+            }
+        }
+        
+        /* Extra large screen active content section adjustments */
+        @media (min-width: 1920px) {
+            .content-section.active {
+                margin-left: 300px !important;
+            }
         }
         
         /* Specific sections: Remove all top spacing */
@@ -2651,7 +2939,7 @@
         .content-section {
             display: none !important;
             /* Offset for fixed sidebar on desktop */
-            margin-left: var(--sidebar-width);
+            margin-left: var(--sidebar-width) !important;
             margin-top: 0 !important;
             padding-top: 0 !important;
             padding-left: 0;
@@ -2659,21 +2947,48 @@
             transition: margin-left 0.3s ease;
         }
         
+        /* Large screen content section adjustments */
+        @media (min-width: 1400px) {
+            .content-section {
+                margin-left: 280px !important;
+            }
+        }
+        
+        /* Extra large screen content section adjustments */
+        @media (min-width: 1920px) {
+            .content-section {
+                margin-left: 300px !important;
+            }
+        }
+        
         .content-section.active {
             display: block !important;
-            margin-left: var(--sidebar-width);
+            margin-left: var(--sidebar-width) !important;
             margin-top: 0 !important;
             padding-top: 0 !important;
             padding-left: 20px;
             padding-right: 20px;
             padding-bottom: 20px;
-            transition: margin-left 0.3s ease;
+        }
+        
+        /* Large screen active content section adjustments */
+        @media (min-width: 1400px) {
+            .content-section.active {
+                margin-left: 280px !important;
+            }
+        }
+        
+        /* Extra large screen active content section adjustments */
+        @media (min-width: 1920px) {
+            .content-section.active {
+                margin-left: 300px !important;
+            }
         }
         
         /* Adjust content sections when sidebar is collapsed */
         body:has(.sidebar.collapsed) .content-section.active,
         .sidebar.collapsed ~ * .content-section.active {
-            margin-left: 70px;
+            margin-left: 70px !important;
         }
         
         /* Specific sections: Absolutely no top spacing */
@@ -14777,38 +15092,50 @@
                 let dateFrom = null;
                 let dateTo = null;
 
-                // Calculate date range based on filter
-                if (dateRangeFilter === 'custom') {
-                    dateFrom = document.getElementById(`${tabPrefix}DashboardTopDateFrom`)?.value || null;
-                    dateTo = document.getElementById(`${tabPrefix}DashboardTopDateTo`)?.value || null;
-                } else if (dateRangeFilter === 'weekly') {
-                    // 1st Week of selected month (Days 1-7)
-                    const weekStart = new Date(monthStart);
-                    const weekEnd = new Date(weekStart);
-                    weekEnd.setDate(weekEnd.getDate() + 6);
-                    if (weekEnd > monthEnd) {
-                        weekEnd.setTime(monthEnd.getTime());
-                    }
-                    dateFrom = formatDate(weekStart);
-                    dateTo = formatDate(weekEnd);
-                } else if (dateRangeFilter === 'first15') {
-                    // First 15 days of selected month
-                    const firstDay = new Date(monthStart);
-                    const fifteenthDay = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), 15);
-                    fifteenthDay.setHours(23, 59, 59, 999);
-                    dateFrom = formatDate(firstDay);
-                    dateTo = formatDate(fifteenthDay > monthEnd ? monthEnd : fifteenthDay);
-                } else if (dateRangeFilter === 'last15') {
-                    // Last 15 days of selected month (from 16th to end of month)
-                    const sixteenthDay = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), 16);
-                    sixteenthDay.setHours(0, 0, 0, 0);
-                    const lastDay = new Date(monthEnd);
-                    dateFrom = formatDate(sixteenthDay < monthStart ? monthStart : sixteenthDay);
-                    dateTo = formatDate(lastDay);
+                // Special handling for shop dashboard: default to yesterday if no explicit filter is set
+                if (tabPrefix === 'shop' && dateRangeFilter === 'currentMonth' && !effectiveMonth) {
+                    // Shop dashboard default: Show yesterday's sales (latest entered sale)
+                    const yesterday = new Date();
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    yesterday.setHours(0, 0, 0, 0);
+                    const yesterdayEnd = new Date(yesterday);
+                    yesterdayEnd.setHours(23, 59, 59, 999);
+                    dateFrom = formatDate(yesterday);
+                    dateTo = formatDate(yesterdayEnd);
                 } else {
-                    // Entire selected month
-                    dateFrom = formatDate(monthStart);
-                    dateTo = formatDate(monthEnd);
+                    // Calculate date range based on filter (existing logic)
+                    if (dateRangeFilter === 'custom') {
+                        dateFrom = document.getElementById(`${tabPrefix}DashboardTopDateFrom`)?.value || null;
+                        dateTo = document.getElementById(`${tabPrefix}DashboardTopDateTo`)?.value || null;
+                    } else if (dateRangeFilter === 'weekly') {
+                        // 1st Week of selected month (Days 1-7)
+                        const weekStart = new Date(monthStart);
+                        const weekEnd = new Date(weekStart);
+                        weekEnd.setDate(weekEnd.getDate() + 6);
+                        if (weekEnd > monthEnd) {
+                            weekEnd.setTime(monthEnd.getTime());
+                        }
+                        dateFrom = formatDate(weekStart);
+                        dateTo = formatDate(weekEnd);
+                    } else if (dateRangeFilter === 'first15') {
+                        // First 15 days of selected month
+                        const firstDay = new Date(monthStart);
+                        const fifteenthDay = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), 15);
+                        fifteenthDay.setHours(23, 59, 59, 999);
+                        dateFrom = formatDate(firstDay);
+                        dateTo = formatDate(fifteenthDay > monthEnd ? monthEnd : fifteenthDay);
+                    } else if (dateRangeFilter === 'last15') {
+                        // Last 15 days of selected month (from 16th to end of month)
+                        const sixteenthDay = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), 16);
+                        sixteenthDay.setHours(0, 0, 0, 0);
+                        const lastDay = new Date(monthEnd);
+                        dateFrom = formatDate(sixteenthDay < monthStart ? monthStart : sixteenthDay);
+                        dateTo = formatDate(lastDay);
+                    } else {
+                        // Entire selected month
+                        dateFrom = formatDate(monthStart);
+                        dateTo = formatDate(monthEnd);
+                    }
                 }
                 
                 // Build sales API filters
