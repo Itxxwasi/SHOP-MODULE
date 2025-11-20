@@ -11240,7 +11240,12 @@
                 const navItem = link.closest('.nav-item');
                 const parentSection = link.closest('.sidebar-section-items')?.id;
                 
-                // Skip if navItem is not found
+                // Skip sidebar-bottom-link elements (handled separately or don't need nav-item)
+                if (link.classList.contains('sidebar-bottom-link')) {
+                    return;
+                }
+                
+                // Skip if navItem is not found (only warn for non-bottom links)
                 if (!navItem) {
                     console.warn('Nav item not found for link:', link);
                     return;
@@ -11320,6 +11325,13 @@
                     }
                 }
             });
+            
+            // Handle sidebar-bottom-link settings (admin-only)
+            const bottomSettingsLink = document.querySelector('.sidebar-bottom-link[data-section="settings"]');
+            if (bottomSettingsLink) {
+                const hasSettingsPermission = hasPermission('settings', permissions);
+                bottomSettingsLink.style.display = hasSettingsPermission ? 'block' : 'none';
+            }
 
             // Update report tabs visibility
             updateReportTabsVisibility(permissions);
@@ -11645,10 +11657,12 @@
                     
                     // Check if user has permission to access this section
                     const permissions = appData.currentUser?.permissions || [];
+                    const isAdmin = permissions.includes('admin');
                     
                     // For reports section with specific report tab, check individual report permission
                     if (section === 'reports' && reportTab) {
-                        if (!hasPermission(reportTab, permissions)) {
+                        // Admin has access to all reports
+                        if (!isAdmin && !hasPermission(reportTab, permissions)) {
                             showNotification(`You don't have permission to access ${reportTab}`, 'error');
                             return;
                         }
@@ -11698,16 +11712,30 @@
             // Handle reports menu toggle (chevron rotation)
             const reportsMenuToggle = document.getElementById('reportsMenuToggle');
             if (reportsMenuToggle) {
+                const reportsSubmenu = document.getElementById('reportsSubmenu');
+                let reportsCollapse = null;
+                
+                // Initialize Bootstrap Collapse instance once
+                if (reportsSubmenu) {
+                    reportsCollapse = new bootstrap.Collapse(reportsSubmenu, { toggle: false });
+                }
+                
                 const toggleReportsMenu = function() {
-                    const reportsSubmenu = document.getElementById('reportsSubmenu');
-                    if (reportsSubmenu) {
-                        const bsCollapse = new bootstrap.Collapse(reportsSubmenu, { toggle: true });
+                    if (reportsCollapse && reportsSubmenu) {
+                        // Check current state and toggle accordingly
+                        const isExpanded = reportsMenuToggle.getAttribute('aria-expanded') === 'true';
+                        if (isExpanded) {
+                            reportsCollapse.hide();
+                        } else {
+                            reportsCollapse.show();
+                        }
                     }
                 };
                 
                 reportsMenuToggle.addEventListener('click', function(e) {
                     // Prevent default navigation
                     e.preventDefault();
+                    e.stopPropagation();
                     toggleReportsMenu();
                 });
                 
@@ -11717,12 +11745,12 @@
                     reportsChevron.addEventListener('click', function(e) {
                         e.preventDefault();
                         e.stopPropagation();
+                        e.stopImmediatePropagation();
                         toggleReportsMenu();
                     });
                 }
                 
                 // Listen for collapse events to rotate chevron
-                const reportsSubmenu = document.getElementById('reportsSubmenu');
                 if (reportsSubmenu) {
                     reportsSubmenu.addEventListener('show.bs.collapse', function() {
                         const chevron = document.getElementById('reportsChevron');
@@ -11745,15 +11773,29 @@
             // Handle warehouse reports submenu toggle
             const warehouseReportsToggle = document.getElementById('warehouseReportsToggle');
             if (warehouseReportsToggle) {
+                const warehouseReportsSubmenu = document.getElementById('warehouseReportsSubmenu');
+                let warehouseCollapse = null;
+                
+                // Initialize Bootstrap Collapse instance once
+                if (warehouseReportsSubmenu) {
+                    warehouseCollapse = new bootstrap.Collapse(warehouseReportsSubmenu, { toggle: false });
+                }
+                
                 const toggleWarehouseReports = function() {
-                    const warehouseReportsSubmenu = document.getElementById('warehouseReportsSubmenu');
-                    if (warehouseReportsSubmenu) {
-                        const bsCollapse = new bootstrap.Collapse(warehouseReportsSubmenu, { toggle: true });
+                    if (warehouseCollapse && warehouseReportsSubmenu) {
+                        // Check current state and toggle accordingly
+                        const isExpanded = warehouseReportsToggle.getAttribute('aria-expanded') === 'true';
+                        if (isExpanded) {
+                            warehouseCollapse.hide();
+                        } else {
+                            warehouseCollapse.show();
+                        }
                     }
                 };
                 
                 warehouseReportsToggle.addEventListener('click', function(e) {
                     e.preventDefault();
+                    e.stopPropagation();
                     toggleWarehouseReports();
                 });
                 
@@ -11763,11 +11805,11 @@
                     warehouseReportsChevron.addEventListener('click', function(e) {
                         e.preventDefault();
                         e.stopPropagation();
+                        e.stopImmediatePropagation();
                         toggleWarehouseReports();
                     });
                 }
                 
-                const warehouseReportsSubmenu = document.getElementById('warehouseReportsSubmenu');
                 if (warehouseReportsSubmenu) {
                     warehouseReportsSubmenu.addEventListener('show.bs.collapse', function() {
                         const chevron = document.getElementById('warehouseReportsChevron');
@@ -11790,15 +11832,29 @@
             // Handle shop reports submenu toggle
             const shopReportsToggle = document.getElementById('shopReportsToggle');
             if (shopReportsToggle) {
+                const shopReportsSubmenu = document.getElementById('shopReportsSubmenu');
+                let shopCollapse = null;
+                
+                // Initialize Bootstrap Collapse instance once
+                if (shopReportsSubmenu) {
+                    shopCollapse = new bootstrap.Collapse(shopReportsSubmenu, { toggle: false });
+                }
+                
                 const toggleShopReports = function() {
-                    const shopReportsSubmenu = document.getElementById('shopReportsSubmenu');
-                    if (shopReportsSubmenu) {
-                        const bsCollapse = new bootstrap.Collapse(shopReportsSubmenu, { toggle: true });
+                    if (shopCollapse && shopReportsSubmenu) {
+                        // Check current state and toggle accordingly
+                        const isExpanded = shopReportsToggle.getAttribute('aria-expanded') === 'true';
+                        if (isExpanded) {
+                            shopCollapse.hide();
+                        } else {
+                            shopCollapse.show();
+                        }
                     }
                 };
                 
                 shopReportsToggle.addEventListener('click', function(e) {
                     e.preventDefault();
+                    e.stopPropagation();
                     toggleShopReports();
                 });
                 
@@ -11808,11 +11864,11 @@
                     shopReportsChevron.addEventListener('click', function(e) {
                         e.preventDefault();
                         e.stopPropagation();
+                        e.stopImmediatePropagation();
                         toggleShopReports();
                     });
                 }
                 
-                const shopReportsSubmenu = document.getElementById('shopReportsSubmenu');
                 if (shopReportsSubmenu) {
                     shopReportsSubmenu.addEventListener('show.bs.collapse', function() {
                         const chevron = document.getElementById('shopReportsChevron');
@@ -12957,14 +13013,26 @@
             // REPORT TABS SWITCHING FUNCTIONALITY
             // ========================================
             function switchReportTab(tabName, hideTabs = false) {
+                // Validate tabName
+                if (!tabName) {
+                    console.warn('switchReportTab called with null or undefined tabName');
+                    return;
+                }
+                
                 // Check permissions before switching to report tab
                 if (appData.currentUser) {
                     const permissions = appData.currentUser.permissions || [];
+                    const isAdmin = permissions.includes('admin');
                     
-                    // Check if user has permission for this specific report tab
-                    if (!hasPermission(tabName, permissions)) {
-                        showNotification(`You don't have permission to access ${tabName}`, 'error');
-                        return;
+                    // Admin has access to all reports
+                    if (isAdmin) {
+                        // Admin can access all reports, continue
+                    } else {
+                        // Check if user has permission for this specific report tab
+                        if (!hasPermission(tabName, permissions)) {
+                            showNotification(`You don't have permission to access ${tabName}`, 'error');
+                            return;
+                        }
                     }
                 }
                 // Hide or show report tabs navigation based on parameter
