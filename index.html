@@ -6053,6 +6053,12 @@
                                                 <span class="sidebar-text">Date-Wise Sales</span>
                                             </a>
                                         </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" href="#" data-section="reports" data-report="payment-reports">
+                                                <i class="fas fa-circle" style="font-size: 6px;"></i>
+                                                <span class="sidebar-text">Payment Reports</span>
+                                            </a>
+                                        </li>
                                     </ul>
                                 </li>
                                 <!-- Shop Reports Section -->
@@ -11606,11 +11612,11 @@
                 // Skip reports menu toggle and submenu toggles (handled separately)
                 if (link.id === 'reportsMenuToggle' || link.id === 'warehouseReportsToggle' || link.id === 'shopReportsToggle') {
                     // Show reports menu if user has any report permission
-                    const reportPermissions = ['sales-report', 'sales-comparison-report', 'datewise-sales-report', 'department-wise-report', 'sub-department-wise-report', 'department-wise-sale-comparison', 'branch-wise-sale-comparison'];
+                    const reportPermissions = ['sales-report', 'sales-comparison-report', 'datewise-sales-report', 'payment-reports', 'department-wise-report', 'sub-department-wise-report', 'department-wise-sale-comparison', 'branch-wise-sale-comparison'];
                     const hasAnyReportPermission = reportPermissions.some(perm => permissions.includes(perm)) || isAdmin;
                     
                     if (link.id === 'warehouseReportsToggle') {
-                        const warehouseReportPermissions = ['sales-report', 'sales-comparison-report', 'datewise-sales-report'];
+                        const warehouseReportPermissions = ['sales-report', 'sales-comparison-report', 'datewise-sales-report', 'payment-reports'];
                         const hasWarehousePermission = warehouseReportPermissions.some(perm => permissions.includes(perm)) || isAdmin;
                         if (navItem) navItem.style.display = hasWarehousePermission ? 'block' : 'none';
                         if (hasWarehousePermission) sectionVisibility['reportsSectionItems'] = true;
@@ -11628,7 +11634,13 @@
                 
                 // Handle report submenu items
                 if (section === 'reports' && reportTab) {
-                    const hasReportPermission = hasPermission(reportTab, permissions);
+                    // For payment-reports, check permission directly (allows admin bypass for visibility)
+                    let hasReportPermission = false;
+                    if (reportTab === 'payment-reports') {
+                        hasReportPermission = isAdmin || permissions.includes('payment-reports');
+                    } else {
+                        hasReportPermission = hasPermission(reportTab, permissions);
+                    }
                     if (navItem) navItem.style.display = hasReportPermission ? 'block' : 'none';
                     if (hasReportPermission && parentSection) {
                         sectionVisibility[parentSection] = true;
@@ -11769,9 +11781,9 @@
                 const requiredPerms = reportTabPermissions[tabId];
                 
                 if (requiredPerms) {
-                    // Payment reports: no admin bypass
+                    // All reports: admin bypass allowed
                     if (tabId === 'payment-reports') {
-                        const hasPermission = permissions.includes('payment-reports');
+                        const hasPermission = isAdmin || permissions.includes('payment-reports');
                         tab.style.display = hasPermission ? 'flex' : 'none';
                     } else {
                         // Other reports: admin bypass allowed
