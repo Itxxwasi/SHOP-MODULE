@@ -7120,6 +7120,7 @@
                         <table class="table table-hover" id="departmentsTable">
                             <thead>
                                 <tr>
+                                    <th>Sequence</th>
                                     <th>Name</th>
                                     <th>Description</th>
                                     <th>Sub-Departments</th>
@@ -9495,6 +9496,11 @@
                             <label for="departmentDescription" class="form-label">Description</label>
                             <textarea class="form-control" id="departmentDescription" rows="3"></textarea>
                         </div>
+                        <div class="mb-3">
+                            <label for="departmentSequence" class="form-label">Sequence <span class="text-muted">(for ordering)</span></label>
+                            <input type="number" class="form-control" id="departmentSequence" min="0" value="0">
+                            <small class="form-text text-muted">Lower numbers appear first in dropdowns and reports</small>
+                        </div>
                     </form>
                 </div>
                 <div class="modal-footer">
@@ -9532,6 +9538,11 @@
                         <div class="mb-3">
                             <label for="subDepartmentDescription" class="form-label">Description</label>
                             <textarea class="form-control" id="subDepartmentDescription" rows="3" placeholder="Enter description (optional)"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="subDepartmentSequence" class="form-label">Sequence <span class="text-muted">(for ordering)</span></label>
+                            <input type="number" class="form-control" id="subDepartmentSequence" min="0" value="0">
+                            <small class="form-text text-muted">Lower numbers appear first in dropdowns and reports</small>
                         </div>
                     </form>
                 </div>
@@ -19497,7 +19508,12 @@ sortedBranches.forEach(data => {
                 departmentsData = [];
             }
             
-            const sortedDepartments = [...departmentsData].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+            const sortedDepartments = [...departmentsData].sort((a, b) => {
+                const seqA = a.sequence !== undefined ? a.sequence : 0;
+                const seqB = b.sequence !== undefined ? b.sequence : 0;
+                if (seqA !== seqB) return seqA - seqB;
+                return new Date(a.createdAt) - new Date(b.createdAt);
+            });
             
             // Render card view
             const cardContainer = document.getElementById('departmentsContainer');
@@ -19568,6 +19584,9 @@ sortedBranches.forEach(data => {
                     const subDeptCount = department.subDepartments ? department.subDepartments.length : 0;
                     
                     row.innerHTML = `
+                        <td>
+                            <span class="badge bg-secondary">${department.sequence !== undefined ? department.sequence : 0}</span>
+                        </td>
                         <td>
                             <div class="d-flex align-items-center">
                                 <span class="badge bg-primary me-2">#${departmentNumber}</span>
@@ -19666,6 +19685,8 @@ sortedBranches.forEach(data => {
                     
                     if (deptNameInput) deptNameInput.value = department.name;
                     if (deptDescInput) deptDescInput.value = department.description || '';
+                    const deptSeqInput = document.getElementById('departmentSequence');
+                    if (deptSeqInput) deptSeqInput.value = department.sequence !== undefined ? department.sequence : 0;
                     if (modalLabel) modalLabel.textContent = 'Edit Department';
                     
                     const saveBtn = document.getElementById('saveDepartmentBtn');
@@ -19706,7 +19727,8 @@ sortedBranches.forEach(data => {
             const departmentData = {
                 name: document.getElementById('departmentName').value,
                 branchId: branchId,
-                description: document.getElementById('departmentDescription').value
+                description: document.getElementById('departmentDescription').value,
+                sequence: parseInt(document.getElementById('departmentSequence').value) || 0
             };
             
             api.updateDepartment(id, departmentData).then(() => {
@@ -19883,7 +19905,8 @@ sortedBranches.forEach(data => {
                 name: document.getElementById('subDepartmentName').value,
                 departmentId: departmentId,
                 branchId: branchId,
-                description: document.getElementById('subDepartmentDescription').value
+                description: document.getElementById('subDepartmentDescription').value,
+                sequence: parseInt(document.getElementById('subDepartmentSequence').value) || 0
             };
             
             api.createSubDepartment(subDepartmentData).then(() => {
@@ -19917,15 +19940,24 @@ sortedBranches.forEach(data => {
                 if (subDepts.length === 0) {
                     content += '<p class="text-muted">No sub-departments found. Click "Add Sub-Department" to create one.</p>';
                 } else {
+                    // Sort sub-departments by sequence
+                    const sortedSubDepts = [...subDepts].sort((a, b) => {
+                        const seqA = a.sequence !== undefined ? a.sequence : 0;
+                        const seqB = b.sequence !== undefined ? b.sequence : 0;
+                        if (seqA !== seqB) return seqA - seqB;
+                        return a.name.localeCompare(b.name);
+                    });
                     content += '<ul class="list-group">';
-                    subDepts.forEach((subDept, index) => {
+                    sortedSubDepts.forEach((subDept, index) => {
                         content += `
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <div>
                                     <strong>${subDept.name}</strong>
                                     ${subDept.description ? `<br><small class="text-muted">${subDept.description}</small>` : ''}
+                                    <br><small class="text-muted"><i class="fas fa-sort-numeric-up me-1"></i>Sequence: ${subDept.sequence !== undefined ? subDept.sequence : 0}</small>
                                 </div>
                                 <div>
+                                    <span class="badge bg-secondary rounded-pill me-2">Seq: ${subDept.sequence !== undefined ? subDept.sequence : 0}</span>
                                     <span class="badge bg-primary rounded-pill me-2">#${index + 1}</span>
                                     <button class="btn btn-sm btn-outline-primary me-2" onclick="editSubDepartment('${subDept._id}')">
                                         <i class="fas fa-edit"></i> Edit
@@ -20028,8 +20060,10 @@ sortedBranches.forEach(data => {
                 // Populate form fields
                 const nameInput = document.getElementById('subDepartmentName');
                 const descInput = document.getElementById('subDepartmentDescription');
+                const seqInput = document.getElementById('subDepartmentSequence');
                 if (nameInput) nameInput.value = subDept.name || '';
                 if (descInput) descInput.value = subDept.description || '';
+                if (seqInput) seqInput.value = subDept.sequence !== undefined ? subDept.sequence : 0;
                 
                 document.getElementById('addSubDepartmentModalLabel').textContent = 'Edit Sub-Department';
                 
@@ -20093,7 +20127,8 @@ sortedBranches.forEach(data => {
                 name: document.getElementById('subDepartmentName').value,
                 departmentId: departmentId,
                 branchId: branchId,
-                description: document.getElementById('subDepartmentDescription').value
+                description: document.getElementById('subDepartmentDescription').value,
+                sequence: parseInt(document.getElementById('subDepartmentSequence').value) || 0
             };
             
             api.updateSubDepartment(id, subDepartmentData).then(() => {

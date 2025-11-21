@@ -479,7 +479,8 @@ const DepartmentSchema = new mongoose.Schema(
     name: { type: String, required: true },
     branchId: { type: mongoose.Schema.Types.ObjectId, ref: 'Branch', required: true },
     description: { type: String, default: '' },
-    isActive: { type: Boolean, default: true }
+    isActive: { type: Boolean, default: true },
+    sequence: { type: Number, default: 0 } // Custom sequence for branch-wise ordering
   },
   { timestamps: true }
 );
@@ -491,7 +492,8 @@ const SubDepartmentSchema = new mongoose.Schema(
     departmentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Department', required: true },
     branchId: { type: mongoose.Schema.Types.ObjectId, ref: 'Branch', required: true },
     description: { type: String, default: '' },
-    isActive: { type: Boolean, default: true }
+    isActive: { type: Boolean, default: true },
+    sequence: { type: Number, default: 0 } // Custom sequence for branch-wise ordering
   },
   { timestamps: true }
 );
@@ -1301,7 +1303,7 @@ app.get('/api/departments', authenticate, async (req, res) => {
     const { branchId } = req.query;
     const query = branchId ? { branchId } : {};
     console.log('🔍 Department query:', JSON.stringify(query, null, 2));
-    const departments = await Department.find(query).populate('branchId', 'name').sort({ createdAt: -1 });
+    const departments = await Department.find(query).populate('branchId', 'name').sort({ sequence: 1, name: 1 });
     console.log(`✅ Found ${departments.length} departments`);
     res.json(departments);
   } catch (error) {
@@ -1313,7 +1315,7 @@ app.get('/api/departments', authenticate, async (req, res) => {
 // Get Departments by Branch ID
 app.get('/api/branches/:branchId/departments', authenticate, async (req, res) => {
   try {
-    const departments = await Department.find({ branchId: req.params.branchId }).populate('branchId', 'name').sort({ name: 1 });
+    const departments = await Department.find({ branchId: req.params.branchId }).populate('branchId', 'name').sort({ sequence: 1, name: 1 });
     res.json(departments);
   } catch (error) {
     console.error('Error fetching departments:', error.message);
@@ -1328,7 +1330,7 @@ app.get('/api/departments/:id', authenticate, async (req, res) => {
     if (!department) {
       return res.status(404).json({ error: 'Department not found' });
     }
-    const subDepartments = await SubDepartment.find({ departmentId: req.params.id }).sort({ name: 1 });
+    const subDepartments = await SubDepartment.find({ departmentId: req.params.id }).sort({ sequence: 1, name: 1 });
     res.json({ ...department.toObject(), subDepartments });
   } catch (error) {
     console.error('Error fetching department:', error.message);
@@ -1363,10 +1365,15 @@ app.post('/api/departments', authenticate, isAdmin, checkDatabaseConnection, asy
       });
     }
     
+    // Get max sequence for this branch to set default
+    const maxSequence = await Department.findOne({ branchId }).sort({ sequence: -1 }).select('sequence');
+    const defaultSequence = maxSequence && maxSequence.sequence !== undefined ? maxSequence.sequence + 1 : 0;
+    
     const department = await Department.create({ 
       name, 
       branchId, 
-      description: description || '' 
+      description: description || '',
+      sequence: req.body.sequence !== undefined ? req.body.sequence : defaultSequence
     });
     
     await department.populate('branchId', 'name');
@@ -1408,6 +1415,7 @@ app.put('/api/departments/:id', authenticate, isAdmin, checkDatabaseConnection, 
     if (name) updateData.name = name;
     if (branchId) updateData.branchId = branchId;
     if (description !== undefined) updateData.description = description;
+    if (req.body.sequence !== undefined) updateData.sequence = req.body.sequence;
     
     const updatedDepartment = await Department.findByIdAndUpdate(
       req.params.id,
@@ -1459,7 +1467,7 @@ app.get('/api/sub-departments', authenticate, async (req, res) => {
     const subDepartments = await SubDepartment.find(query)
       .populate('departmentId', 'name')
       .populate('branchId', 'name')
-      .sort({ name: 1 });
+      .sort({ sequence: 1, name: 1 });
     res.json(subDepartments);
   } catch (error) {
     console.error('Error fetching sub-departments:', error.message);
@@ -1490,7 +1498,7 @@ app.get('/api/departments/:departmentId/sub-departments', authenticate, async (r
   try {
     const subDepartments = await SubDepartment.find({ departmentId: req.params.departmentId })
       .populate('branchId', 'name')
-      .sort({ name: 1 });
+      .sort({ sequence: 1, name: 1 });
     res.json(subDepartments);
   } catch (error) {
     console.error('Error fetching sub-departments:', error.message);
@@ -1537,11 +1545,16 @@ app.post('/api/sub-departments', authenticate, isAdmin, checkDatabaseConnection,
       });
     }
     
+    // Get max sequence for this department to set default
+    const maxSequence = await SubDepartment.findOne({ departmentId, branchId }).sort({ sequence: -1 }).select('sequence');
+    const defaultSequence = maxSequence && maxSequence.sequence !== undefined ? maxSequence.sequence + 1 : 0;
+    
     const subDepartment = await SubDepartment.create({ 
       name, 
       departmentId,
       branchId,
-      description: description || '' 
+      description: description || '',
+      sequence: req.body.sequence !== undefined ? req.body.sequence : defaultSequence
     });
     
     await subDepartment.populate('departmentId', 'name');
@@ -1600,6 +1613,7 @@ app.put('/api/sub-departments/:id', authenticate, isAdmin, checkDatabaseConnecti
     if (departmentId) updateData.departmentId = departmentId;
     if (branchId) updateData.branchId = branchId;
     if (description !== undefined) updateData.description = description;
+    if (req.body.sequence !== undefined) updateData.sequence = req.body.sequence;
     
     const updatedSubDepartment = await SubDepartment.findByIdAndUpdate(
       req.params.id,
@@ -1626,6 +1640,48 @@ app.delete('/api/sub-departments/:id', authenticate, isAdmin, checkDatabaseConne
     res.json({ ok: true });
   } catch (error) {
     console.error('Error deleting sub-department:', error.message);
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Update Department Sequences (Bulk)
+app.put('/api/departments/sequences', authenticate, isAdmin, checkDatabaseConnection, async (req, res) => {
+  try {
+    const { sequences } = req.body; // Array of { id, sequence }
+    
+    if (!Array.isArray(sequences)) {
+      return res.status(400).json({ error: 'Sequences must be an array' });
+    }
+    
+    const updatePromises = sequences.map(({ id, sequence }) => 
+      Department.findByIdAndUpdate(id, { sequence }, { new: true })
+    );
+    
+    await Promise.all(updatePromises);
+    res.json({ ok: true, message: 'Sequences updated successfully' });
+  } catch (error) {
+    console.error('Error updating department sequences:', error.message);
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Update Sub-Department Sequences (Bulk)
+app.put('/api/sub-departments/sequences', authenticate, isAdmin, checkDatabaseConnection, async (req, res) => {
+  try {
+    const { sequences } = req.body; // Array of { id, sequence }
+    
+    if (!Array.isArray(sequences)) {
+      return res.status(400).json({ error: 'Sequences must be an array' });
+    }
+    
+    const updatePromises = sequences.map(({ id, sequence }) => 
+      SubDepartment.findByIdAndUpdate(id, { sequence }, { new: true })
+    );
+    
+    await Promise.all(updatePromises);
+    res.json({ ok: true, message: 'Sequences updated successfully' });
+  } catch (error) {
+    console.error('Error updating sub-department sequences:', error.message);
     res.status(400).json({ error: error.message });
   }
 });
@@ -2167,10 +2223,32 @@ app.get('/api/department-sales', authenticate, async (req, res) => {
     console.log('🔍 Final filter:', JSON.stringify(filter, null, 2));
     
     const departmentSales = await DepartmentSale.find(filter)
-      .sort({ date: -1 })
       .populate('branchId', 'name')
-      .populate('departmentId', 'name')
-      .populate('subDepartmentId', 'name');
+      .populate({
+        path: 'departmentId',
+        select: 'name sequence',
+        model: 'Department'
+      })
+      .populate({
+        path: 'subDepartmentId',
+        select: 'name sequence',
+        model: 'SubDepartment'
+      });
+    
+    // Sort by department sequence, then sub-department sequence, then date
+    departmentSales.sort((a, b) => {
+      const deptSeqA = a.departmentId?.sequence ?? 0;
+      const deptSeqB = b.departmentId?.sequence ?? 0;
+      if (deptSeqA !== deptSeqB) {
+        return deptSeqA - deptSeqB;
+      }
+      const subDeptSeqA = a.subDepartmentId?.sequence ?? 0;
+      const subDeptSeqB = b.subDepartmentId?.sequence ?? 0;
+      if (subDeptSeqA !== subDeptSeqB) {
+        return subDeptSeqA - subDeptSeqB;
+      }
+      return new Date(b.date) - new Date(a.date);
+    });
     
     console.log(`✅ Found ${departmentSales.length} department sales`);
     res.json(departmentSales);
