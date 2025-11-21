@@ -6851,6 +6851,20 @@
                                 </div>
                             </div>
                             
+                            <!-- Department-Wise Summary -->
+                            <div id="departmentSummarySection" class="mb-4" style="display: none;">
+                                <div class="card">
+                                    <div class="card-header bg-info text-white">
+                                        <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Department-Wise Summary</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row" id="departmentSummaryCards">
+                                            <!-- Department summary cards will be populated dynamically -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
                             <!-- View Toggle -->
                             <div class="btn-group mb-3" role="group">
                                 <button type="button" class="btn btn-sm btn-outline-primary active" id="deptCardViewBtn">
@@ -9063,6 +9077,18 @@
                                         <label class="permission-label">
                                             <input type="checkbox" class="permission-checkbox" data-permission="sales">
                                             <span>Sales Entry</span>
+                                        </label>
+                                    </div>
+                                    <div class="permission-item">
+                                        <label class="permission-label">
+                                            <input type="checkbox" class="permission-checkbox" data-permission="sales-edit">
+                                            <span>Edit Sale</span>
+                                        </label>
+                                    </div>
+                                    <div class="permission-item">
+                                        <label class="permission-label">
+                                            <input type="checkbox" class="permission-checkbox" data-permission="sales-delete">
+                                            <span>Delete Sale</span>
                                         </label>
                                     </div>
                                 </div>
@@ -15092,16 +15118,69 @@
                 let dateFrom = null;
                 let dateTo = null;
 
-                // Special handling for shop dashboard: default to yesterday if no explicit filter is set
+                // Special handling for shop dashboard: default to latest date with sales if no explicit filter is set
                 if (tabPrefix === 'shop' && dateRangeFilter === 'currentMonth' && !effectiveMonth) {
-                    // Shop dashboard default: Show yesterday's sales (latest entered sale)
-                    const yesterday = new Date();
-                    yesterday.setDate(yesterday.getDate() - 1);
-                    yesterday.setHours(0, 0, 0, 0);
-                    const yesterdayEnd = new Date(yesterday);
-                    yesterdayEnd.setHours(23, 59, 59, 999);
-                    dateFrom = formatDate(yesterday);
-                    dateTo = formatDate(yesterdayEnd);
+                    // Shop dashboard default: Find and show the latest date where sales exist
+                    try {
+                        // First, fetch all department sales to find the latest date
+                        const allDepartmentSales = await api.getDepartmentSales({});
+                        
+                        if (allDepartmentSales && allDepartmentSales.length > 0) {
+                            // Find the latest date from all sales
+                            let latestDate = null;
+                            allDepartmentSales.forEach(sale => {
+                                if (sale.date) {
+                                    const saleDate = new Date(sale.date);
+                                    if (!latestDate || saleDate > latestDate) {
+                                        latestDate = saleDate;
+                                    }
+                                }
+                            });
+                            
+                            if (latestDate) {
+                                // Set the latest date as both from and to (single day)
+                                latestDate.setHours(0, 0, 0, 0);
+                                const latestDateEnd = new Date(latestDate);
+                                latestDateEnd.setHours(23, 59, 59, 999);
+                                dateFrom = formatDate(latestDate);
+                                dateTo = formatDate(latestDateEnd);
+                                
+                                // Update the date input fields to show the latest date
+                                const dateFromInput = document.getElementById('shopDashboardTopDateFrom');
+                                const dateToInput = document.getElementById('shopDashboardTopDateTo');
+                                if (dateFromInput) dateFromInput.value = dateFrom;
+                                if (dateToInput) dateToInput.value = dateTo;
+                            } else {
+                                // Fallback: if no valid dates found, show yesterday
+                                const yesterday = new Date();
+                                yesterday.setDate(yesterday.getDate() - 1);
+                                yesterday.setHours(0, 0, 0, 0);
+                                const yesterdayEnd = new Date(yesterday);
+                                yesterdayEnd.setHours(23, 59, 59, 999);
+                                dateFrom = formatDate(yesterday);
+                                dateTo = formatDate(yesterdayEnd);
+                            }
+                        } else {
+                            // No sales found, show yesterday as fallback
+                            const yesterday = new Date();
+                            yesterday.setDate(yesterday.getDate() - 1);
+                            yesterday.setHours(0, 0, 0, 0);
+                            const yesterdayEnd = new Date(yesterday);
+                            yesterdayEnd.setHours(23, 59, 59, 999);
+                            dateFrom = formatDate(yesterday);
+                            dateTo = formatDate(yesterdayEnd);
+                        }
+                    } catch (error) {
+                        console.error('Error fetching latest sale date:', error);
+                        // Fallback: show yesterday if error occurs
+                        const yesterday = new Date();
+                        yesterday.setDate(yesterday.getDate() - 1);
+                        yesterday.setHours(0, 0, 0, 0);
+                        const yesterdayEnd = new Date(yesterday);
+                        yesterdayEnd.setHours(23, 59, 59, 999);
+                        dateFrom = formatDate(yesterday);
+                        dateTo = formatDate(yesterdayEnd);
+                    }
                 } else {
                     // Calculate date range based on filter (existing logic)
                     if (dateRangeFilter === 'custom') {
@@ -20166,6 +20245,20 @@ sortedBranches.forEach(data => {
                 document.getElementById('deptSaleNetSale').value = '';
                 document.getElementById('deptSaleSubDepartmentTotal').value = '';
                 
+                // Refresh shop dashboard if it's active (to show latest date automatically)
+                const dashboardSection = document.getElementById('dashboard-section');
+                const shopDashboardTab = document.getElementById('shop-dashboard-tab');
+                if (dashboardSection && dashboardSection.classList.contains('active') && 
+                    shopDashboardTab && shopDashboardTab.classList.contains('active')) {
+                    // Reset date range filter to default so it shows latest date
+                    const dateRangeFilter = document.getElementById('shopDashboardDateRangeFilter');
+                    const monthFilter = document.getElementById('shopDashboardMonthFilter');
+                    if (dateRangeFilter) dateRangeFilter.value = 'currentMonth';
+                    if (monthFilter) monthFilter.value = '';
+                    // Reload dashboard to show latest date
+                    loadDashboard(null, 'shop');
+                }
+                
                 // Auto-show and load department sales list with today's date in full page mode
                 const deptSalesListSection = document.getElementById('deptSalesListSection');
                 const salesEntryCard = document.querySelector('#sales-section > .card');
@@ -20673,6 +20766,9 @@ sortedBranches.forEach(data => {
                 // Sort sales by date (newest first)
                 const sortedSales = [...salesData].sort((a, b) => new Date(b.date) - new Date(a.date));
                 
+                // Load department-wise summary (using all filtered data, not paginated)
+                loadDepartmentSummary(salesData);
+                
                 // Calculate pagination
                 const startIndex = (page - 1) * perPage;
                 const endIndex = startIndex + perPage;
@@ -20763,6 +20859,168 @@ sortedBranches.forEach(data => {
                 `;
                 container.appendChild(card);
             });
+        }
+        
+        // Load Department-Wise Summary
+        function loadDepartmentSummary(sales) {
+            const summarySection = document.getElementById('departmentSummarySection');
+            const summaryCards = document.getElementById('departmentSummaryCards');
+            
+            // Don't show if no sales data
+            if (!sales || sales.length === 0) {
+                if (summarySection) summarySection.style.display = 'none';
+                return;
+            }
+            
+            // Group sales by department with transaction details
+            // Using ONLY the filtered sales data (already filtered by date range and other filters)
+            const departmentData = {};
+            
+            // Initialize department data from appData.departments
+            if (appData.departments && appData.departments.length > 0) {
+                appData.departments.forEach(department => {
+                    departmentData[department._id] = {
+                        name: department.name,
+                        grossSale: 0,
+                        discount: 0,
+                        returnAmount: 0,
+                        gst: 0,
+                        netSale: 0,
+                        transactions: []
+                    };
+                });
+            }
+            
+            // Sort sales by date (newest first) - using filtered data only
+            const sortedSales = [...sales].sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            // Calculate totals and collect transaction details for each department
+            // Only processes sales within the selected date range and filters
+            sortedSales.forEach(sale => {
+                const departmentId = sale.departmentId?._id || sale.departmentId;
+                if (departmentId) {
+                    // Initialize department if not already in departmentData
+                    if (!departmentData[departmentId]) {
+                        const deptName = sale.departmentId?.name || 'Unknown Department';
+                        departmentData[departmentId] = {
+                            name: deptName,
+                            grossSale: 0,
+                            discount: 0,
+                            returnAmount: 0,
+                            gst: 0,
+                            netSale: 0,
+                            transactions: []
+                        };
+                    }
+                    
+                    departmentData[departmentId].grossSale += sale.grossSale || 0;
+                    departmentData[departmentId].discount += sale.discountAmount || 0;
+                    departmentData[departmentId].returnAmount += sale.returnAmount || 0;
+                    departmentData[departmentId].gst += sale.gst || 0;
+                    departmentData[departmentId].netSale += sale.netSale || 0;
+                    
+                    // Add transaction details
+                    departmentData[departmentId].transactions.push({
+                        date: sale.date,
+                        grossSale: sale.grossSale || 0,
+                        discount: sale.discountAmount || 0,
+                        returnAmount: sale.returnAmount || 0,
+                        gst: sale.gst || 0,
+                        netSale: sale.netSale || 0,
+                        branch: sale.branchId?.name || 'Unknown',
+                        subDepartment: sale.subDepartmentId?.name || 'Unknown'
+                    });
+                }
+            });
+            
+            // Show section if there's data
+            const hasData = Object.values(departmentData).some(dept => dept.netSale > 0);
+            if (summarySection) {
+                summarySection.style.display = hasData ? 'block' : 'none';
+            }
+            
+            if (!hasData || !summaryCards) return;
+            
+            // Clear and populate summary cards
+            summaryCards.innerHTML = '';
+            
+            Object.values(departmentData)
+                .filter(dept => dept.netSale > 0)
+                .sort((a, b) => b.netSale - a.netSale)
+                .forEach(department => {
+                    const card = document.createElement('div');
+                    card.className = 'col-12 mb-4';
+                    card.innerHTML = `
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-header bg-primary text-white">
+                                <div class="row align-items-center">
+                                    <div class="col-md-8">
+                                        <h6 class="mb-0"><i class="fas fa-building me-2"></i>${department.name}</h6>
+                                    </div>
+                                    <div class="col-md-4 text-end">
+                                        <span class="badge bg-light text-dark">${department.transactions.length} Transactions</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <!-- Summary Stats -->
+                                <div class="row mb-3 border-bottom pb-3">
+                                    <div class="col-md-3 text-center">
+                                        <small class="text-muted d-block">Gross Sale</small>
+                                        <strong class="text-primary fs-5">${department.grossSale.toLocaleString()}</strong>
+                                    </div>
+                                    <div class="col-md-3 text-center">
+                                        <small class="text-muted d-block">Discount</small>
+                                        <strong class="text-warning fs-5">${department.discount.toLocaleString()}</strong>
+                                    </div>
+                                    <div class="col-md-3 text-center">
+                                        <small class="text-muted d-block">Return</small>
+                                        <strong class="text-danger fs-5">${department.returnAmount.toLocaleString()}</strong>
+                                    </div>
+                                    <div class="col-md-3 text-center">
+                                        <small class="text-muted d-block">Net Sale</small>
+                                        <strong class="text-success fs-5">${department.netSale.toLocaleString()}</strong>
+                                    </div>
+                                </div>
+                                
+                                <!-- Transaction Details -->
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Branch</th>
+                                                <th>Sub-Department</th>
+                                                <th class="text-end">Gross Sale</th>
+                                                <th class="text-end">Discount</th>
+                                                <th class="text-end">Return</th>
+                                                <th class="text-end">GST</th>
+                                                <th class="text-end">Net Sale</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${department.transactions.map(trans => `
+                                                <tr>
+                                                    <td>${formatDate(trans.date)}</td>
+                                                    <td>${trans.branch}</td>
+                                                    <td>${trans.subDepartment}</td>
+                                                    <td class="text-end">${trans.grossSale.toLocaleString()}</td>
+                                                    <td class="text-end text-warning">${trans.discount.toLocaleString()}</td>
+                                                    <td class="text-end text-danger">${trans.returnAmount.toLocaleString()}</td>
+                                                    <td class="text-end">${trans.gst.toLocaleString()}</td>
+                                                    <td class="text-end text-success">
+                                                        <strong>${trans.netSale.toLocaleString()}</strong>
+                                                    </td>
+                                                </tr>
+                                            `).join('')}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    summaryCards.appendChild(card);
+                });
         }
         
         // Load Department Sales Table
@@ -20955,8 +21213,23 @@ sortedBranches.forEach(data => {
                 }
                 
                 // Update dashboard if we're on dashboard
-                if (document.getElementById('dashboard-section').classList.contains('active')) {
-                    loadDashboard();
+                const dashboardSection = document.getElementById('dashboard-section');
+                const shopDashboardTab = document.getElementById('shop-dashboard-tab');
+                if (dashboardSection && dashboardSection.classList.contains('active')) {
+                    // If shop dashboard is active, reload with latest date logic
+                    if (shopDashboardTab && shopDashboardTab.classList.contains('active')) {
+                        const dateRangeFilter = document.getElementById('shopDashboardDateRangeFilter');
+                        const monthFilter = document.getElementById('shopDashboardMonthFilter');
+                        // Only reset if no explicit filter is set
+                        if (dateRangeFilter && dateRangeFilter.value === 'currentMonth' && 
+                            monthFilter && !monthFilter.value) {
+                            loadDashboard(null, 'shop');
+                        } else {
+                            loadDashboard();
+                        }
+                    } else {
+                        loadDashboard();
+                    }
                 }
             }).catch(error => {
                 console.error('Error updating department sale:', error);
@@ -20980,6 +21253,26 @@ sortedBranches.forEach(data => {
                     const deptSalesListSection = document.getElementById('deptSalesListSection');
                     if (deptSalesListSection && deptSalesListSection.style.display !== 'none') {
                         loadDeptSalesList();
+                    }
+                    
+                    // Update dashboard if we're on dashboard
+                    const dashboardSection = document.getElementById('dashboard-section');
+                    const shopDashboardTab = document.getElementById('shop-dashboard-tab');
+                    if (dashboardSection && dashboardSection.classList.contains('active')) {
+                        // If shop dashboard is active, reload with latest date logic
+                        if (shopDashboardTab && shopDashboardTab.classList.contains('active')) {
+                            const dateRangeFilter = document.getElementById('shopDashboardDateRangeFilter');
+                            const monthFilter = document.getElementById('shopDashboardMonthFilter');
+                            // Only reset if no explicit filter is set
+                            if (dateRangeFilter && dateRangeFilter.value === 'currentMonth' && 
+                                monthFilter && !monthFilter.value) {
+                                loadDashboard(null, 'shop');
+                            } else {
+                                loadDashboard();
+                            }
+                        } else {
+                            loadDashboard();
+                        }
                     }
                 }).catch(error => {
                     console.error('Error deleting department sale:', error);
