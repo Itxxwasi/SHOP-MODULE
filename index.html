@@ -27711,36 +27711,11 @@ sortedBranches.forEach(data => {
                     }
                 }
                 
-                // Calculate summary totals
-                let summaryGrossSale = 0;
-                let summaryDiscount = 0;
-                let summaryReturn = 0;
-                let summaryGST = 0;
-                let summaryNetSale = 0;
-                
-                data.forEach(sale => {
-                    summaryGrossSale += sale.grossSale || 0;
-                    summaryDiscount += sale.discount || 0;
-                    summaryReturn += sale.return || 0;
-                    summaryGST += sale.gst || 0;
-                    summaryNetSale += sale.netSale || 0;
-                });
-                
-                // Update summary cards
-                document.getElementById('summaryGrossSale').textContent = summaryGrossSale.toLocaleString();
-                document.getElementById('summaryTotalDiscount').textContent = summaryDiscount.toLocaleString();
-                document.getElementById('summaryTotalReturn').textContent = summaryReturn.toLocaleString();
-                document.getElementById('summaryTotalGST').textContent = summaryGST.toLocaleString();
-                document.getElementById('summaryNetSale').textContent = summaryNetSale.toLocaleString();
-                
-                // Department-wise report - Group by department only (no branch)
-                const deptReportData = {};
+                // Department-wise report - Group by branch → department → sub-department
+                const branchReportData = {};
                 const uniqueDates = new Set();
                 
                 data.forEach(sale => {
-                    const deptId = sale.departmentId?._id || sale.departmentId;
-                    const deptName = sale.departmentId?.name || 'Unknown';
-                    
                     // Track unique dates for daily average calculation
                     if (sale.date) {
                         const saleDate = new Date(sale.date);
@@ -27748,9 +27723,38 @@ sortedBranches.forEach(data => {
                         uniqueDates.add(dateString);
                     }
                     
-                    if (!deptReportData[deptId]) {
-                        deptReportData[deptId] = {
+                    const branchId = sale.branchId?._id || sale.branchId;
+                    const branchName = sale.branchId?.name || 'Unknown';
+                    const deptId = sale.departmentId?._id || sale.departmentId;
+                    const deptName = sale.departmentId?.name || 'Unknown';
+                    const subDeptId = sale.subDepartmentId?._id || sale.subDepartmentId;
+                    const subDeptName = sale.subDepartmentId?.name || 'No Sub-Department';
+                    
+                    // Initialize branch if not exists
+                    if (!branchReportData[branchId]) {
+                        branchReportData[branchId] = {
+                            branchName: branchName,
+                            departments: {}
+                        };
+                    }
+                    
+                    // Initialize department if not exists
+                    if (!branchReportData[branchId].departments[deptId]) {
+                        branchReportData[branchId].departments[deptId] = {
                             department: deptName,
+                            grossSale: 0,
+                            discountAmount: 0,
+                            returnAmount: 0,
+                            gst: 0,
+                            netSale: 0,
+                            subDepartments: {}
+                        };
+                    }
+                    
+                    // Initialize sub-department if not exists
+                    if (!branchReportData[branchId].departments[deptId].subDepartments[subDeptId]) {
+                        branchReportData[branchId].departments[deptId].subDepartments[subDeptId] = {
+                            subDepartment: subDeptName,
                             grossSale: 0,
                             discountAmount: 0,
                             returnAmount: 0,
@@ -27759,11 +27763,21 @@ sortedBranches.forEach(data => {
                         };
                     }
                     
-                    deptReportData[deptId].grossSale += sale.grossSale || 0;
-                    deptReportData[deptId].discountAmount += sale.discountAmount || 0;
-                    deptReportData[deptId].returnAmount += sale.returnAmount || 0;
-                    deptReportData[deptId].gst += sale.gst || 0;
-                    deptReportData[deptId].netSale += sale.netSale || 0;
+                    // Add sale data to sub-department
+                    const subDept = branchReportData[branchId].departments[deptId].subDepartments[subDeptId];
+                    subDept.grossSale += sale.grossSale || 0;
+                    subDept.discountAmount += sale.discountAmount || 0;
+                    subDept.returnAmount += sale.returnAmount || 0;
+                    subDept.gst += sale.gst || 0;
+                    subDept.netSale += sale.netSale || 0;
+                    
+                    // Also add to department totals
+                    const dept = branchReportData[branchId].departments[deptId];
+                    dept.grossSale += sale.grossSale || 0;
+                    dept.discountAmount += sale.discountAmount || 0;
+                    dept.returnAmount += sale.returnAmount || 0;
+                    dept.gst += sale.gst || 0;
+                    dept.netSale += sale.netSale || 0;
                 });
                 
                 // Update department-wise table
@@ -27772,31 +27786,176 @@ sortedBranches.forEach(data => {
                 
                 const numberOfDays = uniqueDates.size > 0 ? uniqueDates.size : 1;
                 
-                const sortedDeptData = Object.values(deptReportData).sort((a, b) => {
-                    return a.department.localeCompare(b.department);
+                // Calculate grand totals across all branches
+                let grandTotalGrossSale = 0;
+                let grandTotalDiscount = 0;
+                let grandTotalReturn = 0;
+                let grandTotalGST = 0;
+                let grandTotalNetSale = 0;
+                
+                // Sort branches by name
+                const sortedBranchIds = Object.keys(branchReportData).sort((a, b) => {
+                    return branchReportData[a].branchName.localeCompare(branchReportData[b].branchName);
                 });
                 
-                sortedDeptData.forEach(item => {
-                    // Calculate values
-                    const discountPercent = item.grossSale > 0 ? (item.discountAmount / item.grossSale * 100) : 0;
-                    // Sale Value = Gross Sale - Discount Value - Return
-                    const saleValue = item.grossSale - item.discountAmount - item.returnAmount;
-                    const dailyAverage = numberOfDays > 0 ? item.netSale / numberOfDays : 0;
+                sortedBranchIds.forEach(branchId => {
+                    const branchData = branchReportData[branchId];
                     
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${item.department}</td>
-                        <td class="text-end">${item.grossSale.toLocaleString()}</td>
-                        <td class="text-end">${item.discountAmount.toLocaleString()}</td>
-                        <td class="text-end">${discountPercent.toFixed(2)}%</td>
-                        <td class="text-end">${item.returnAmount.toLocaleString()}</td>
-                        <td class="text-end">${saleValue.toLocaleString()}</td>
-                        <td class="text-end">${item.gst.toLocaleString()}</td>
-                        <td class="text-end" style="font-weight: 700;">${item.netSale.toLocaleString()}</td>
-                        <td class="text-end">${Math.round(dailyAverage).toLocaleString()}</td>
+                    // Calculate branch totals
+                    let branchTotalGrossSale = 0;
+                    let branchTotalDiscount = 0;
+                    let branchTotalReturn = 0;
+                    let branchTotalGST = 0;
+                    let branchTotalNetSale = 0;
+                    
+                    // Sort departments by name
+                    const sortedDeptIds = Object.keys(branchData.departments).sort((a, b) => {
+                        return branchData.departments[a].department.localeCompare(branchData.departments[b].department);
+                    });
+                    
+                    // Branch name header row (Dark teal like warehouse report)
+                    const branchNameRow = document.createElement('tr');
+                    branchNameRow.className = 'branch-name-row';
+                    branchNameRow.innerHTML = `
+                        <td colspan="9" style="text-align: center; padding: 15px; background-color: #00685c; color: white; border-bottom: 5px solid white;">
+                            <h5 style="font-size: 1.8rem; color: white; font-weight: 700; margin: 0;">🏢 ${branchData.branchName}</h5>
+                        </td>
                     `;
-                    deptTableBody.appendChild(row);
+                    deptTableBody.appendChild(branchNameRow);
+                    
+                    // Table headers for this branch (Black with white borders)
+                    const headerRow = document.createElement('tr');
+                    headerRow.className = 'branch-header-row';
+                    headerRow.innerHTML = `
+                        <th style="background-color: #000000; color: white; font-weight: 700; padding: 12px; border-right: 2px solid white; border-left: 1px solid #333; border-top: 1px solid #333; border-bottom: 1px solid #333;">Department / Sub-Department</th>
+                        <th style="background-color: #000000; color: white; font-weight: 700; padding: 12px; text-align: right; border-right: 2px solid white; border-top: 1px solid #333; border-bottom: 1px solid #333;">Gross Sale</th>
+                        <th style="background-color: #000000; color: white; font-weight: 700; padding: 12px; text-align: right; border-right: 2px solid white; border-top: 1px solid #333; border-bottom: 1px solid #333;">Discount Value</th>
+                        <th style="background-color: #000000; color: white; font-weight: 700; padding: 12px; text-align: right; border-right: 2px solid white; border-top: 1px solid #333; border-bottom: 1px solid #333;">Discount %</th>
+                        <th style="background-color: #000000; color: white; font-weight: 700; padding: 12px; text-align: right; border-right: 2px solid white; border-top: 1px solid #333; border-bottom: 1px solid #333;">Return</th>
+                        <th style="background-color: #000000; color: white; font-weight: 700; padding: 12px; text-align: right; border-right: 2px solid white; border-top: 1px solid #333; border-bottom: 1px solid #333;">Sale Value</th>
+                        <th style="background-color: #000000; color: white; font-weight: 700; padding: 12px; text-align: right; border-right: 2px solid white; border-top: 1px solid #333; border-bottom: 1px solid #333;">GST</th>
+                        <th style="background-color: #000000; color: white; font-weight: 700; padding: 12px; text-align: right; border-right: 2px solid white; border-top: 1px solid #333; border-bottom: 1px solid #333;">Net Sale</th>
+                        <th style="background-color: #000000; color: white; font-weight: 700; padding: 12px; text-align: right; border-top: 1px solid #333; border-bottom: 1px solid #333;">Daily Average</th>
+                    `;
+                    deptTableBody.appendChild(headerRow);
+                    
+                    sortedDeptIds.forEach(deptId => {
+                        const dept = branchData.departments[deptId];
+                        
+                        // Add to branch totals
+                        branchTotalGrossSale += dept.grossSale;
+                        branchTotalDiscount += dept.discountAmount;
+                        branchTotalReturn += dept.returnAmount;
+                        branchTotalGST += dept.gst;
+                        branchTotalNetSale += dept.netSale;
+                        
+                        // Sort sub-departments by name
+                        const sortedSubDeptIds = Object.keys(dept.subDepartments).sort((a, b) => {
+                            return dept.subDepartments[a].subDepartment.localeCompare(dept.subDepartments[b].subDepartment);
+                        });
+                        
+                        // Department row (with sub-departments indented)
+                        sortedSubDeptIds.forEach(subDeptId => {
+                            const subDept = dept.subDepartments[subDeptId];
+                            
+                            const discountPercent = subDept.grossSale > 0 ? (subDept.discountAmount / subDept.grossSale * 100) : 0;
+                            const saleValue = subDept.grossSale - subDept.discountAmount - subDept.returnAmount;
+                            const dailyAverage = numberOfDays > 0 ? subDept.netSale / numberOfDays : 0;
+                            
+                            const subDeptRow = document.createElement('tr');
+                            subDeptRow.innerHTML = `
+                                <td style="padding: 10px; padding-left: 30px;">${subDept.subDepartment}</td>
+                                <td style="text-align: right; padding: 10px;">${subDept.grossSale.toLocaleString()}</td>
+                                <td style="text-align: right; padding: 10px;">${subDept.discountAmount.toLocaleString()}</td>
+                                <td style="text-align: right; padding: 10px;">${discountPercent.toFixed(2)}%</td>
+                                <td style="text-align: right; padding: 10px;">${subDept.returnAmount.toLocaleString()}</td>
+                                <td style="text-align: right; padding: 10px;">${saleValue.toLocaleString()}</td>
+                                <td style="text-align: right; padding: 10px;">${subDept.gst.toLocaleString()}</td>
+                                <td style="text-align: right; padding: 10px;">${subDept.netSale.toLocaleString()}</td>
+                                <td style="text-align: right; padding: 10px;">${Math.round(dailyAverage).toLocaleString()}</td>
+                            `;
+                            deptTableBody.appendChild(subDeptRow);
+                        });
+                        
+                        // Department total row
+                        const deptDiscountPercent = dept.grossSale > 0 ? (dept.discountAmount / dept.grossSale * 100) : 0;
+                        const deptSaleValue = dept.grossSale - dept.discountAmount - dept.returnAmount;
+                        const deptDailyAverage = numberOfDays > 0 ? dept.netSale / numberOfDays : 0;
+                        
+                        const deptTotalRow = document.createElement('tr');
+                        deptTotalRow.className = 'department-total-row';
+                        deptTotalRow.innerHTML = `
+                            <td style="background-color: #e9ecef; font-weight: 700; padding: 12px 15px; padding-left: 15px;">
+                                <i class="fas fa-folder me-2"></i>${dept.department} Total:
+                            </td>
+                            <td style="background-color: #e9ecef; font-weight: 700; text-align: right; padding: 12px 15px;">${dept.grossSale.toLocaleString()}</td>
+                            <td style="background-color: #e9ecef; font-weight: 700; text-align: right; padding: 12px 15px;">${dept.discountAmount.toLocaleString()}</td>
+                            <td style="background-color: #e9ecef; font-weight: 700; text-align: right; padding: 12px 15px;">${deptDiscountPercent.toFixed(2)}%</td>
+                            <td style="background-color: #e9ecef; font-weight: 700; text-align: right; padding: 12px 15px;">${dept.returnAmount.toLocaleString()}</td>
+                            <td style="background-color: #e9ecef; font-weight: 700; text-align: right; padding: 12px 15px;">${deptSaleValue.toLocaleString()}</td>
+                            <td style="background-color: #e9ecef; font-weight: 700; text-align: right; padding: 12px 15px;">${dept.gst.toLocaleString()}</td>
+                            <td style="background-color: #e9ecef; font-weight: 700; text-align: right; padding: 12px 15px;">${dept.netSale.toLocaleString()}</td>
+                            <td style="background-color: #e9ecef; font-weight: 700; text-align: right; padding: 12px 15px;">${Math.round(deptDailyAverage).toLocaleString()}</td>
+                        `;
+                        deptTableBody.appendChild(deptTotalRow);
+                    });
+                    
+                    // Branch total row
+                    const branchDiscountPercent = branchTotalGrossSale > 0 ? (branchTotalDiscount / branchTotalGrossSale * 100) : 0;
+                    const branchSaleValue = branchTotalGrossSale - branchTotalDiscount - branchTotalReturn;
+                    const branchDailyAverage = numberOfDays > 0 ? branchTotalNetSale / numberOfDays : 0;
+                    
+                    const branchTotalRow = document.createElement('tr');
+                    branchTotalRow.className = 'branch-total-row';
+                    branchTotalRow.innerHTML = `
+                        <td style="background-color: #f8f9fa; font-weight: 700; padding: 12px 15px;">
+                            <i class="fas fa-calculator me-2"></i>Branch Total: ${branchData.branchName}
+                        </td>
+                        <td style="background-color: #f8f9fa; font-weight: 700; text-align: right; padding: 12px 15px;">${branchTotalGrossSale.toLocaleString()}</td>
+                        <td style="background-color: #f8f9fa; font-weight: 700; text-align: right; padding: 12px 15px;">${branchTotalDiscount.toLocaleString()}</td>
+                        <td style="background-color: #f8f9fa; font-weight: 700; text-align: right; padding: 12px 15px;">${branchDiscountPercent.toFixed(2)}%</td>
+                        <td style="background-color: #f8f9fa; font-weight: 700; text-align: right; padding: 12px 15px;">${branchTotalReturn.toLocaleString()}</td>
+                        <td style="background-color: #f8f9fa; font-weight: 700; text-align: right; padding: 12px 15px;">${branchSaleValue.toLocaleString()}</td>
+                        <td style="background-color: #f8f9fa; font-weight: 700; text-align: right; padding: 12px 15px;">${branchTotalGST.toLocaleString()}</td>
+                        <td style="background-color: #f8f9fa; font-weight: 700; text-align: right; padding: 12px 15px;">${branchTotalNetSale.toLocaleString()}</td>
+                        <td style="background-color: #f8f9fa; font-weight: 700; text-align: right; padding: 12px 15px;">${Math.round(branchDailyAverage).toLocaleString()}</td>
+                    `;
+                    deptTableBody.appendChild(branchTotalRow);
+                    
+                    // Add spacing row between branches
+                    const spacingRow = document.createElement('tr');
+                    spacingRow.innerHTML = '<td colspan="9" style="height: 20px; border: none;"></td>';
+                    deptTableBody.appendChild(spacingRow);
+                    
+                    // Add to grand totals
+                    grandTotalGrossSale += branchTotalGrossSale;
+                    grandTotalDiscount += branchTotalDiscount;
+                    grandTotalReturn += branchTotalReturn;
+                    grandTotalGST += branchTotalGST;
+                    grandTotalNetSale += branchTotalNetSale;
                 });
+                
+                // Grand total row at the end
+                const grandDiscountPercent = grandTotalGrossSale > 0 ? (grandTotalDiscount / grandTotalGrossSale * 100) : 0;
+                const grandSaleValue = grandTotalGrossSale - grandTotalDiscount - grandTotalReturn;
+                const grandDailyAverage = numberOfDays > 0 ? grandTotalNetSale / numberOfDays : 0;
+                
+                const grandTotalRow = document.createElement('tr');
+                grandTotalRow.className = 'grand-total-row';
+                grandTotalRow.innerHTML = `
+                    <td style="background-color: #2c6e8a; color: white; font-weight: 700; padding: 15px; font-size: 1.1rem;">
+                        <i class="fas fa-calculator me-2"></i>Grand Total (All Branches):
+                    </td>
+                    <td style="background-color: #2c6e8a; color: white; font-weight: 700; text-align: right; padding: 15px; font-size: 1.1rem;">${grandTotalGrossSale.toLocaleString()}</td>
+                    <td style="background-color: #2c6e8a; color: white; font-weight: 700; text-align: right; padding: 15px; font-size: 1.1rem;">${grandTotalDiscount.toLocaleString()}</td>
+                    <td style="background-color: #2c6e8a; color: white; font-weight: 700; text-align: right; padding: 15px; font-size: 1.1rem;">${grandDiscountPercent.toFixed(2)}%</td>
+                    <td style="background-color: #2c6e8a; color: white; font-weight: 700; text-align: right; padding: 15px; font-size: 1.1rem;">${grandTotalReturn.toLocaleString()}</td>
+                    <td style="background-color: #2c6e8a; color: white; font-weight: 700; text-align: right; padding: 15px; font-size: 1.1rem;">${grandSaleValue.toLocaleString()}</td>
+                    <td style="background-color: #2c6e8a; color: white; font-weight: 700; text-align: right; padding: 15px; font-size: 1.1rem;">${grandTotalGST.toLocaleString()}</td>
+                    <td style="background-color: #2c6e8a; color: white; font-weight: 700; text-align: right; padding: 15px; font-size: 1.1rem;">${grandTotalNetSale.toLocaleString()}</td>
+                    <td style="background-color: #2c6e8a; color: white; font-weight: 700; text-align: right; padding: 15px; font-size: 1.1rem;">${Math.round(grandDailyAverage).toLocaleString()}</td>
+                `;
+                deptTableBody.appendChild(grandTotalRow);
                 
                 // Sub-department-wise report
                 const subDeptReportData = {};
@@ -27962,36 +28121,11 @@ sortedBranches.forEach(data => {
                     }
                 }
                 
-                // Calculate summary totals
-                let summaryGrossSale = 0;
-                let summaryDiscount = 0;
-                let summaryReturn = 0;
-                let summaryGST = 0;
-                let summaryNetSale = 0;
-                
-                data.forEach(sale => {
-                    summaryGrossSale += sale.grossSale || 0;
-                    summaryDiscount += sale.discount || 0;
-                    summaryReturn += sale.return || 0;
-                    summaryGST += sale.gst || 0;
-                    summaryNetSale += sale.netSale || 0;
-                });
-                
-                // Update summary cards
-                document.getElementById('deptWiseSummaryGrossSale').textContent = summaryGrossSale.toLocaleString();
-                document.getElementById('deptWiseSummaryTotalDiscount').textContent = summaryDiscount.toLocaleString();
-                document.getElementById('deptWiseSummaryTotalReturn').textContent = summaryReturn.toLocaleString();
-                document.getElementById('deptWiseSummaryTotalGST').textContent = summaryGST.toLocaleString();
-                document.getElementById('deptWiseSummaryNetSale').textContent = summaryNetSale.toLocaleString();
-                
-                // Department-wise report - Group by department only (no branch)
-                const deptReportData = {};
+                // Department-wise report - Group by branch → department → sub-department
+                const branchReportData = {};
                 const uniqueDates = new Set();
                 
                 data.forEach(sale => {
-                    const deptId = sale.departmentId?._id || sale.departmentId;
-                    const deptName = sale.departmentId?.name || 'Unknown';
-                    
                     // Track unique dates for daily average calculation
                     if (sale.date) {
                         const saleDate = new Date(sale.date);
@@ -27999,9 +28133,38 @@ sortedBranches.forEach(data => {
                         uniqueDates.add(dateString);
                     }
                     
-                    if (!deptReportData[deptId]) {
-                        deptReportData[deptId] = {
+                    const branchId = sale.branchId?._id || sale.branchId;
+                    const branchName = sale.branchId?.name || 'Unknown';
+                    const deptId = sale.departmentId?._id || sale.departmentId;
+                    const deptName = sale.departmentId?.name || 'Unknown';
+                    const subDeptId = sale.subDepartmentId?._id || sale.subDepartmentId;
+                    const subDeptName = sale.subDepartmentId?.name || 'No Sub-Department';
+                    
+                    // Initialize branch if not exists
+                    if (!branchReportData[branchId]) {
+                        branchReportData[branchId] = {
+                            branchName: branchName,
+                            departments: {}
+                        };
+                    }
+                    
+                    // Initialize department if not exists
+                    if (!branchReportData[branchId].departments[deptId]) {
+                        branchReportData[branchId].departments[deptId] = {
                             department: deptName,
+                            grossSale: 0,
+                            discountAmount: 0,
+                            returnAmount: 0,
+                            gst: 0,
+                            netSale: 0,
+                            subDepartments: {}
+                        };
+                    }
+                    
+                    // Initialize sub-department if not exists
+                    if (!branchReportData[branchId].departments[deptId].subDepartments[subDeptId]) {
+                        branchReportData[branchId].departments[deptId].subDepartments[subDeptId] = {
+                            subDepartment: subDeptName,
                             grossSale: 0,
                             discountAmount: 0,
                             returnAmount: 0,
@@ -28010,11 +28173,21 @@ sortedBranches.forEach(data => {
                         };
                     }
                     
-                    deptReportData[deptId].grossSale += sale.grossSale || 0;
-                    deptReportData[deptId].discountAmount += sale.discountAmount || 0;
-                    deptReportData[deptId].returnAmount += sale.returnAmount || 0;
-                    deptReportData[deptId].gst += sale.gst || 0;
-                    deptReportData[deptId].netSale += sale.netSale || 0;
+                    // Add sale data to sub-department
+                    const subDept = branchReportData[branchId].departments[deptId].subDepartments[subDeptId];
+                    subDept.grossSale += sale.grossSale || 0;
+                    subDept.discountAmount += sale.discountAmount || 0;
+                    subDept.returnAmount += sale.returnAmount || 0;
+                    subDept.gst += sale.gst || 0;
+                    subDept.netSale += sale.netSale || 0;
+                    
+                    // Also add to department totals
+                    const dept = branchReportData[branchId].departments[deptId];
+                    dept.grossSale += sale.grossSale || 0;
+                    dept.discountAmount += sale.discountAmount || 0;
+                    dept.returnAmount += sale.returnAmount || 0;
+                    dept.gst += sale.gst || 0;
+                    dept.netSale += sale.netSale || 0;
                 });
                 
                 // Update department-wise table
@@ -28023,68 +28196,188 @@ sortedBranches.forEach(data => {
                 
                 const numberOfDays = uniqueDates.size > 0 ? uniqueDates.size : 1;
                 
-                const sortedDeptData = Object.values(deptReportData).sort((a, b) => {
-                    return a.department.localeCompare(b.department);
-                });
-                
-                // Calculate grand totals
+                // Calculate grand totals across all branches
                 let grandTotalGrossSale = 0;
                 let grandTotalDiscount = 0;
                 let grandTotalReturn = 0;
                 let grandTotalGST = 0;
                 let grandTotalNetSale = 0;
                 
-                sortedDeptData.forEach(item => {
-                    // Calculate values
-                    const discountPercent = item.grossSale > 0 ? (item.discountAmount / item.grossSale * 100) : 0;
-                    // Sale Value = Gross Sale - Discount Value - Return
-                    const saleValue = item.grossSale - item.discountAmount - item.returnAmount;
-                    const dailyAverage = numberOfDays > 0 ? item.netSale / numberOfDays : 0;
-                    
-                    // Accumulate totals
-                    grandTotalGrossSale += item.grossSale;
-                    grandTotalDiscount += item.discountAmount;
-                    grandTotalReturn += item.returnAmount;
-                    grandTotalGST += item.gst;
-                    grandTotalNetSale += item.netSale;
-                    
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${item.department}</td>
-                        <td class="text-end">${item.grossSale.toLocaleString()}</td>
-                        <td class="text-end">${item.discountAmount.toLocaleString()}</td>
-                        <td class="text-end">${discountPercent.toFixed(2)}%</td>
-                        <td class="text-end">${item.returnAmount.toLocaleString()}</td>
-                        <td class="text-end">${saleValue.toLocaleString()}</td>
-                        <td class="text-end">${item.gst.toLocaleString()}</td>
-                        <td class="text-end" style="font-weight: 700;">${item.netSale.toLocaleString()}</td>
-                        <td class="text-end">${Math.round(dailyAverage).toLocaleString()}</td>
-                    `;
-                    deptTableBody.appendChild(row);
+                // Hide branch name heading since we show it in table
+                if (branchNameHeading) {
+                    branchNameHeading.style.display = 'none';
+                }
+                
+                // Sort branches by name
+                const sortedBranchIds = Object.keys(branchReportData).sort((a, b) => {
+                    return branchReportData[a].branchName.localeCompare(branchReportData[b].branchName);
                 });
                 
-                // Add grand total row
-                if (sortedDeptData.length > 0) {
-                    const grandTotalDiscountPercent = grandTotalGrossSale > 0 ? (grandTotalDiscount / grandTotalGrossSale * 100) : 0;
-                    const grandTotalSaleValue = grandTotalGrossSale - grandTotalDiscount - grandTotalReturn;
-                    const grandTotalDailyAverage = numberOfDays > 0 ? grandTotalNetSale / numberOfDays : 0;
+                sortedBranchIds.forEach(branchId => {
+                    const branchData = branchReportData[branchId];
                     
-                    const grandTotalRow = document.createElement('tr');
-                    grandTotalRow.style.backgroundColor = '#f8f9fa';
-                    grandTotalRow.style.fontWeight = '700';
-                    grandTotalRow.innerHTML = `
-                        <td style="font-weight: 700; font-size: 1.1em;">Grand Total</td>
-                        <td class="text-end" style="font-weight: 700; font-size: 1.1em;">${grandTotalGrossSale.toLocaleString()}</td>
-                        <td class="text-end" style="font-weight: 700; font-size: 1.1em;">${grandTotalDiscount.toLocaleString()}</td>
-                        <td class="text-end" style="font-weight: 700; font-size: 1.1em;">${grandTotalDiscountPercent.toFixed(2)}%</td>
-                        <td class="text-end" style="font-weight: 700; font-size: 1.1em;">${grandTotalReturn.toLocaleString()}</td>
-                        <td class="text-end" style="font-weight: 700; font-size: 1.1em;">${grandTotalSaleValue.toLocaleString()}</td>
-                        <td class="text-end" style="font-weight: 700; font-size: 1.1em;">${grandTotalGST.toLocaleString()}</td>
-                        <td class="text-end" style="font-weight: 700; font-size: 1.1em; color: #2c6e8a;">${grandTotalNetSale.toLocaleString()}</td>
-                        <td class="text-end" style="font-weight: 700; font-size: 1.1em;">${Math.round(grandTotalDailyAverage).toLocaleString()}</td>
+                    // Calculate branch totals
+                    let branchTotalGrossSale = 0;
+                    let branchTotalDiscount = 0;
+                    let branchTotalReturn = 0;
+                    let branchTotalGST = 0;
+                    let branchTotalNetSale = 0;
+                    
+                    // Sort departments by name
+                    const sortedDeptIds = Object.keys(branchData.departments).sort((a, b) => {
+                        return branchData.departments[a].department.localeCompare(branchData.departments[b].department);
+                    });
+                    
+                    // Branch name header row (Dark teal like warehouse report)
+                    const branchNameRow = document.createElement('tr');
+                    branchNameRow.className = 'branch-name-row';
+                    branchNameRow.innerHTML = `
+                        <td colspan="9" style="text-align: center; padding: 15px; background-color: #00685c; color: white; border-bottom: 5px solid white;">
+                            <h5 style="font-size: 1.8rem; color: white; font-weight: 700; margin: 0;">🏢 ${branchData.branchName}</h5>
+                        </td>
                     `;
-                    deptTableBody.appendChild(grandTotalRow);
-                }
+                    deptTableBody.appendChild(branchNameRow);
+                    
+                    // Table headers for this branch (Black with white borders)
+                    const headerRow = document.createElement('tr');
+                    headerRow.className = 'branch-header-row';
+                    headerRow.innerHTML = `
+                        <th style="background-color: #000000; color: white; font-weight: 700; padding: 12px; border-right: 2px solid white; border-left: 1px solid #333; border-top: 1px solid #333; border-bottom: 1px solid #333;">Department / Sub-Department</th>
+                        <th style="background-color: #000000; color: white; font-weight: 700; padding: 12px; text-align: right; border-right: 2px solid white; border-top: 1px solid #333; border-bottom: 1px solid #333;">Gross Sale</th>
+                        <th style="background-color: #000000; color: white; font-weight: 700; padding: 12px; text-align: right; border-right: 2px solid white; border-top: 1px solid #333; border-bottom: 1px solid #333;">Discount Value</th>
+                        <th style="background-color: #000000; color: white; font-weight: 700; padding: 12px; text-align: right; border-right: 2px solid white; border-top: 1px solid #333; border-bottom: 1px solid #333;">Discount %</th>
+                        <th style="background-color: #000000; color: white; font-weight: 700; padding: 12px; text-align: right; border-right: 2px solid white; border-top: 1px solid #333; border-bottom: 1px solid #333;">Return</th>
+                        <th style="background-color: #000000; color: white; font-weight: 700; padding: 12px; text-align: right; border-right: 2px solid white; border-top: 1px solid #333; border-bottom: 1px solid #333;">Sale Value</th>
+                        <th style="background-color: #000000; color: white; font-weight: 700; padding: 12px; text-align: right; border-right: 2px solid white; border-top: 1px solid #333; border-bottom: 1px solid #333;">GST</th>
+                        <th style="background-color: #000000; color: white; font-weight: 700; padding: 12px; text-align: right; border-right: 2px solid white; border-top: 1px solid #333; border-bottom: 1px solid #333;">Net Sale</th>
+                        <th style="background-color: #000000; color: white; font-weight: 700; padding: 12px; text-align: right; border-top: 1px solid #333; border-bottom: 1px solid #333;">Daily Average</th>
+                    `;
+                    deptTableBody.appendChild(headerRow);
+                    
+                    sortedDeptIds.forEach(deptId => {
+                        const dept = branchData.departments[deptId];
+                        
+                        // Add to branch totals
+                        branchTotalGrossSale += dept.grossSale;
+                        branchTotalDiscount += dept.discountAmount;
+                        branchTotalReturn += dept.returnAmount;
+                        branchTotalGST += dept.gst;
+                        branchTotalNetSale += dept.netSale;
+                        
+                        // Sort sub-departments by name
+                        const sortedSubDeptIds = Object.keys(dept.subDepartments).sort((a, b) => {
+                            return dept.subDepartments[a].subDepartment.localeCompare(dept.subDepartments[b].subDepartment);
+                        });
+                        
+                        // Department row (with sub-departments indented)
+                        sortedSubDeptIds.forEach(subDeptId => {
+                            const subDept = dept.subDepartments[subDeptId];
+                            
+                            const discountPercent = subDept.grossSale > 0 ? (subDept.discountAmount / subDept.grossSale * 100) : 0;
+                            const saleValue = subDept.grossSale - subDept.discountAmount - subDept.returnAmount;
+                            const dailyAverage = numberOfDays > 0 ? subDept.netSale / numberOfDays : 0;
+                            
+                            const subDeptRow = document.createElement('tr');
+                            subDeptRow.innerHTML = `
+                                <td style="padding: 10px; padding-left: 30px;">${subDept.subDepartment}</td>
+                                <td style="text-align: right; padding: 10px;">${subDept.grossSale.toLocaleString()}</td>
+                                <td style="text-align: right; padding: 10px;">${subDept.discountAmount.toLocaleString()}</td>
+                                <td style="text-align: right; padding: 10px;">${discountPercent.toFixed(2)}%</td>
+                                <td style="text-align: right; padding: 10px;">${subDept.returnAmount.toLocaleString()}</td>
+                                <td style="text-align: right; padding: 10px;">${saleValue.toLocaleString()}</td>
+                                <td style="text-align: right; padding: 10px;">${subDept.gst.toLocaleString()}</td>
+                                <td style="text-align: right; padding: 10px;">${subDept.netSale.toLocaleString()}</td>
+                                <td style="text-align: right; padding: 10px;">${Math.round(dailyAverage).toLocaleString()}</td>
+                            `;
+                            deptTableBody.appendChild(subDeptRow);
+                        });
+                        
+                        // Department total row
+                        const deptDiscountPercent = dept.grossSale > 0 ? (dept.discountAmount / dept.grossSale * 100) : 0;
+                        const deptSaleValue = dept.grossSale - dept.discountAmount - dept.returnAmount;
+                        const deptDailyAverage = numberOfDays > 0 ? dept.netSale / numberOfDays : 0;
+                        
+                        const deptTotalRow = document.createElement('tr');
+                        deptTotalRow.className = 'department-total-row';
+                        deptTotalRow.innerHTML = `
+                            <td style="background-color: #e9ecef; font-weight: 700; padding: 12px 15px; padding-left: 15px;">
+                                <i class="fas fa-folder me-2"></i>${dept.department} Total:
+                            </td>
+                            <td style="background-color: #e9ecef; font-weight: 700; text-align: right; padding: 12px 15px;">${dept.grossSale.toLocaleString()}</td>
+                            <td style="background-color: #e9ecef; font-weight: 700; text-align: right; padding: 12px 15px;">${dept.discountAmount.toLocaleString()}</td>
+                            <td style="background-color: #e9ecef; font-weight: 700; text-align: right; padding: 12px 15px;">${deptDiscountPercent.toFixed(2)}%</td>
+                            <td style="background-color: #e9ecef; font-weight: 700; text-align: right; padding: 12px 15px;">${dept.returnAmount.toLocaleString()}</td>
+                            <td style="background-color: #e9ecef; font-weight: 700; text-align: right; padding: 12px 15px;">${deptSaleValue.toLocaleString()}</td>
+                            <td style="background-color: #e9ecef; font-weight: 700; text-align: right; padding: 12px 15px;">${dept.gst.toLocaleString()}</td>
+                            <td style="background-color: #e9ecef; font-weight: 700; text-align: right; padding: 12px 15px;">${dept.netSale.toLocaleString()}</td>
+                            <td style="background-color: #e9ecef; font-weight: 700; text-align: right; padding: 12px 15px;">${Math.round(deptDailyAverage).toLocaleString()}</td>
+                        `;
+                        deptTableBody.appendChild(deptTotalRow);
+                    });
+                    
+                    // Branch total row
+                    const branchDiscountPercent = branchTotalGrossSale > 0 ? (branchTotalDiscount / branchTotalGrossSale * 100) : 0;
+                    const branchSaleValue = branchTotalGrossSale - branchTotalDiscount - branchTotalReturn;
+                    const branchDailyAverage = numberOfDays > 0 ? branchTotalNetSale / numberOfDays : 0;
+                    
+                    const branchTotalRow = document.createElement('tr');
+                    branchTotalRow.className = 'branch-total-row';
+                    branchTotalRow.innerHTML = `
+                        <td style="background-color: #f8f9fa; font-weight: 700; padding: 12px 15px;">
+                            <i class="fas fa-calculator me-2"></i>Branch Total: ${branchData.branchName}
+                        </td>
+                        <td style="background-color: #f8f9fa; font-weight: 700; text-align: right; padding: 12px 15px;">${branchTotalGrossSale.toLocaleString()}</td>
+                        <td style="background-color: #f8f9fa; font-weight: 700; text-align: right; padding: 12px 15px;">${branchTotalDiscount.toLocaleString()}</td>
+                        <td style="background-color: #f8f9fa; font-weight: 700; text-align: right; padding: 12px 15px;">${branchDiscountPercent.toFixed(2)}%</td>
+                        <td style="background-color: #f8f9fa; font-weight: 700; text-align: right; padding: 12px 15px;">${branchTotalReturn.toLocaleString()}</td>
+                        <td style="background-color: #f8f9fa; font-weight: 700; text-align: right; padding: 12px 15px;">${branchSaleValue.toLocaleString()}</td>
+                        <td style="background-color: #f8f9fa; font-weight: 700; text-align: right; padding: 12px 15px;">${branchTotalGST.toLocaleString()}</td>
+                        <td style="background-color: #f8f9fa; font-weight: 700; text-align: right; padding: 12px 15px;">${branchTotalNetSale.toLocaleString()}</td>
+                        <td style="background-color: #f8f9fa; font-weight: 700; text-align: right; padding: 12px 15px;">${Math.round(branchDailyAverage).toLocaleString()}</td>
+                    `;
+                    deptTableBody.appendChild(branchTotalRow);
+                    
+                    // Add spacing row between branches
+                    const spacingRow = document.createElement('tr');
+                    spacingRow.innerHTML = '<td colspan="9" style="height: 20px; border: none;"></td>';
+                    deptTableBody.appendChild(spacingRow);
+                    
+                    // Add to grand totals
+                    grandTotalGrossSale += branchTotalGrossSale;
+                    grandTotalDiscount += branchTotalDiscount;
+                    grandTotalReturn += branchTotalReturn;
+                    grandTotalGST += branchTotalGST;
+                    grandTotalNetSale += branchTotalNetSale;
+                });
+                
+                // Grand total row at the end
+                const grandDiscountPercent = grandTotalGrossSale > 0 ? (grandTotalDiscount / grandTotalGrossSale * 100) : 0;
+                const grandSaleValue = grandTotalGrossSale - grandTotalDiscount - grandTotalReturn;
+                const grandDailyAverage = numberOfDays > 0 ? grandTotalNetSale / numberOfDays : 0;
+                
+                const grandTotalRow = document.createElement('tr');
+                grandTotalRow.className = 'grand-total-row';
+                grandTotalRow.innerHTML = `
+                    <td style="background-color: #2c6e8a; color: white; font-weight: 700; padding: 15px; font-size: 1.1rem;">
+                        <i class="fas fa-calculator me-2"></i>Grand Total (All Branches):
+                    </td>
+                    <td style="background-color: #2c6e8a; color: white; font-weight: 700; text-align: right; padding: 15px; font-size: 1.1rem;">${grandTotalGrossSale.toLocaleString()}</td>
+                    <td style="background-color: #2c6e8a; color: white; font-weight: 700; text-align: right; padding: 15px; font-size: 1.1rem;">${grandTotalDiscount.toLocaleString()}</td>
+                    <td style="background-color: #2c6e8a; color: white; font-weight: 700; text-align: right; padding: 15px; font-size: 1.1rem;">${grandDiscountPercent.toFixed(2)}%</td>
+                    <td style="background-color: #2c6e8a; color: white; font-weight: 700; text-align: right; padding: 15px; font-size: 1.1rem;">${grandTotalReturn.toLocaleString()}</td>
+                    <td style="background-color: #2c6e8a; color: white; font-weight: 700; text-align: right; padding: 15px; font-size: 1.1rem;">${grandSaleValue.toLocaleString()}</td>
+                    <td style="background-color: #2c6e8a; color: white; font-weight: 700; text-align: right; padding: 15px; font-size: 1.1rem;">${grandTotalGST.toLocaleString()}</td>
+                    <td style="background-color: #2c6e8a; color: white; font-weight: 700; text-align: right; padding: 15px; font-size: 1.1rem;">${grandTotalNetSale.toLocaleString()}</td>
+                    <td style="background-color: #2c6e8a; color: white; font-weight: 700; text-align: right; padding: 15px; font-size: 1.1rem;">${Math.round(grandDailyAverage).toLocaleString()}</td>
+                `;
+                deptTableBody.appendChild(grandTotalRow);
+                
+                // Update summary cards with grand totals
+                document.getElementById('deptWiseSummaryGrossSale').textContent = grandTotalGrossSale.toLocaleString();
+                document.getElementById('deptWiseSummaryTotalDiscount').textContent = grandTotalDiscount.toLocaleString();
+                document.getElementById('deptWiseSummaryTotalReturn').textContent = grandTotalReturn.toLocaleString();
+                document.getElementById('deptWiseSummaryTotalGST').textContent = grandTotalGST.toLocaleString();
+                document.getElementById('deptWiseSummaryNetSale').textContent = grandTotalNetSale.toLocaleString();
             }).catch(error => {
                 console.error('Error generating department-wise report:', error);
                 showNotification('Failed to generate department-wise report', 'error');
