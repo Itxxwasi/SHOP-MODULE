@@ -11534,12 +11534,13 @@
             'payment-reports': ['payment-reports'],
             
             // Reports
-            'reports': ['sales-report', 'sales-comparison-report', 'datewise-sales-report', 'department-wise-report', 'sub-department-wise-report', 'department-wise-sale-comparison', 'branch-wise-sale-comparison'],
+            'reports': ['sales-report', 'sales-comparison-report', 'datewise-sales-report', 'payment-reports', 'department-wise-report', 'sub-department-wise-report', 'department-wise-sale-comparison', 'branch-wise-sale-comparison'],
             
             // Individual report permissions
             'sales-report': ['sales-report'],
             'sales-comparison-report': ['sales-comparison-report'],
             'datewise-sales-report': ['datewise-sales-report'],
+            'payment-reports': ['payment-reports'],
             'department-wise-report': ['department-wise-report'],
             'sub-department-wise-report': ['sub-department-wise-report'],
             'department-wise-sale-comparison': ['department-wise-sale-comparison'],
@@ -11709,21 +11710,21 @@
             });
             
             // Hide/show Payment Voucher section tabs based on permissions
-            // Supplier Voucher Tab - requires 'payment-vouchers' permission
+            // Supplier Voucher Tab - requires 'payment-vouchers' permission (admin bypass allowed)
             const supplierVoucherTab = document.getElementById('supplier-voucher-tab');
             if (supplierVoucherTab && supplierVoucherTab.parentElement) {
-                const hasSupplierVoucherPermission = permissions.includes('payment-vouchers');
+                const hasSupplierVoucherPermission = isAdmin || permissions.includes('payment-vouchers');
                 supplierVoucherTab.parentElement.style.display = hasSupplierVoucherPermission ? '' : 'none';
             }
             
-            // Category Voucher Tab - requires 'category-voucher' permission
+            // Category Voucher Tab - requires 'category-voucher' permission (admin bypass allowed)
             const categoryVoucherTab = document.getElementById('category-voucher-tab');
             if (categoryVoucherTab && categoryVoucherTab.parentElement) {
-                const hasCategoryVoucherPermission = permissions.includes('category-voucher');
+                const hasCategoryVoucherPermission = isAdmin || permissions.includes('category-voucher');
                 categoryVoucherTab.parentElement.style.display = hasCategoryVoucherPermission ? '' : 'none';
                 
                 // If category voucher tab is hidden but supplier voucher is visible, make supplier tab active
-                if (!hasCategoryVoucherPermission && supplierVoucherTab && permissions.includes('payment-vouchers')) {
+                if (!hasCategoryVoucherPermission && supplierVoucherTab && (isAdmin || permissions.includes('payment-vouchers'))) {
                     supplierVoucherTab.classList.add('active');
                     const supplierContent = document.getElementById('supplier-voucher-content');
                     if (supplierContent) supplierContent.classList.add('show', 'active');
@@ -11734,21 +11735,21 @@
             }
             
             // Payment voucher list tabs inside payment-voucher-list section (voucherListTabs)
-            // Check for supplier voucher list tab
+            // Check for supplier voucher list tab (admin bypass allowed)
             const supplierVoucherListTab = document.querySelector('#voucherListTabs [data-bs-target="#supplier-voucher-list-content"]');
             if (supplierVoucherListTab && supplierVoucherListTab.parentElement) {
-                const hasPaymentVoucherListPermission = permissions.includes('payment-voucher-list');
+                const hasPaymentVoucherListPermission = isAdmin || permissions.includes('payment-voucher-list');
                 supplierVoucherListTab.parentElement.style.display = hasPaymentVoucherListPermission ? '' : 'none';
             }
             
-            // Check for category voucher list tab (inside voucher list section)
+            // Check for category voucher list tab (inside voucher list section) (admin bypass allowed)
             const categoryVoucherListTabBtn = document.querySelector('#voucherListTabs [data-bs-target="#category-voucher-list-content"]');
             if (categoryVoucherListTabBtn && categoryVoucherListTabBtn.parentElement) {
-                const hasCategoryVoucherListPermission = permissions.includes('category-voucher-list');
+                const hasCategoryVoucherListPermission = isAdmin || permissions.includes('category-voucher-list');
                 categoryVoucherListTabBtn.parentElement.style.display = hasCategoryVoucherListPermission ? '' : 'none';
                 
                 // If category voucher list tab is hidden but supplier voucher list is visible, make supplier tab active
-                if (!hasCategoryVoucherListPermission && supplierVoucherListTab && permissions.includes('payment-voucher-list')) {
+                if (!hasCategoryVoucherListPermission && supplierVoucherListTab && (isAdmin || permissions.includes('payment-voucher-list'))) {
                     supplierVoucherListTab.classList.add('active');
                     const supplierListContent = document.getElementById('supplier-voucher-list-content');
                     if (supplierListContent) supplierListContent.classList.add('show', 'active');
