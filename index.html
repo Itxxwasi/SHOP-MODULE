@@ -6468,6 +6468,33 @@
                                             </ul>
                                             <!-- Hidden input to store selected date range value -->
                                             <input type="hidden" id="shopDashboardDateRangeFilter" value="yesterday">
+                                            <!-- Sort by Sale Button (Circular) -->
+                                            <button class="btn btn-primary circular-btn" id="shopSortBySaleBtn" data-bs-toggle="dropdown" aria-expanded="false" title="Sort by Sale">
+                                                <i class="fas fa-sort-amount-down"></i>
+                                            </button>
+                                            <!-- Sort by Sale Dropdown Menu -->
+                                            <ul class="dropdown-menu" id="shopSortBySaleDropdown" aria-labelledby="shopSortBySaleBtn">
+                                                <li class="dropdown-item-text fw-bold">Sort Branches by Sale:</li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li><a class="dropdown-item active" href="#" data-sort="net-sale-desc" id="shopSortNetSaleDesc">
+                                                    <i class="fas fa-sort-amount-down me-2"></i>Net Sale (Highest First)
+                                                </a></li>
+                                                <li><a class="dropdown-item" href="#" data-sort="net-sale-asc" id="shopSortNetSaleAsc">
+                                                    <i class="fas fa-sort-amount-up me-2"></i>Net Sale (Lowest First)
+                                                </a></li>
+                                                <li><a class="dropdown-item" href="#" data-sort="gross-sale-desc" id="shopSortGrossSaleDesc">
+                                                    <i class="fas fa-sort-amount-down me-2"></i>Gross Sale (Highest First)
+                                                </a></li>
+                                                <li><a class="dropdown-item" href="#" data-sort="gross-sale-asc" id="shopSortGrossSaleAsc">
+                                                    <i class="fas fa-sort-amount-up me-2"></i>Gross Sale (Lowest First)
+                                                </a></li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li><a class="dropdown-item" href="#" data-sort="none" id="shopSortNone">
+                                                    <i class="fas fa-sort me-2"></i>No Sort (Original Order)
+                                                </a></li>
+                                            </ul>
+                                            <!-- Hidden input to store selected sort option -->
+                                            <input type="hidden" id="shopDashboardSortBySale" value="net-sale-desc">
                                         </div>
                                     </div>
                                     
@@ -12504,6 +12531,52 @@
             setupDateRangeFilters('warehouse');
             setupDateRangeFilters('shop');
             
+            // Setup Sort by Sale filter for Shop Dashboard
+            function setupSortBySaleFilter() {
+                const sortDropdown = document.getElementById('shopSortBySaleDropdown');
+                const sortFilterInput = document.getElementById('shopDashboardSortBySale');
+                
+                if (!sortDropdown || !sortFilterInput) return;
+                
+                const sortItems = sortDropdown.querySelectorAll('a[data-sort]');
+                const defaultSort = sortFilterInput.value || 'net-sale-desc';
+                
+                // Initialize active state based on default value
+                sortItems.forEach(item => {
+                    if (item.getAttribute('data-sort') === defaultSort) {
+                        item.classList.add('active');
+                    }
+                });
+                
+                // Add click handlers for sort options
+                sortItems.forEach(item => {
+                    item.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const sortOption = this.getAttribute('data-sort');
+                        
+                        // Update hidden input
+                        sortFilterInput.value = sortOption;
+                        
+                        // Update visual indicator
+                        sortItems.forEach(i => i.classList.remove('active'));
+                        this.classList.add('active');
+                        
+                        // Reload dashboard with new sort
+                        const selectedMonth = document.getElementById('shopDashboardMonthFilter')?.value || '';
+                        loadDashboard(selectedMonth || null, 'shop');
+                        
+                        // Close dropdown
+                        const dropdown = bootstrap.Dropdown.getInstance(document.getElementById('shopSortBySaleBtn'));
+                        if (dropdown) {
+                            dropdown.hide();
+                        }
+                    });
+                });
+            }
+            
+            // Initialize sort by sale filter
+            setupSortBySaleFilter();
+            
             // Setup branch filter dropdowns for both tabs
             function setupBranchFilters(prefix) {
                 const filterBtn = document.getElementById(`${prefix}FilterDashboardBtn`);
@@ -15882,9 +15955,13 @@
                 branchesToDisplay = branchesToDisplay.filter(branch => branch._id === branchFilter);
             }
             
-            // For shop dashboard, calculate net sale for each branch and sort by net sale (descending)
+            // For shop dashboard, calculate net sale for each branch and sort according to user preference
             if (tabPrefix === 'shop') {
-                const branchesWithNetSale = branchesToDisplay.map(branch => {
+                // Get sort preference from hidden input
+                const sortBySaleInput = document.getElementById('shopDashboardSortBySale');
+                const sortOption = sortBySaleInput?.value || 'net-sale-desc';
+                
+                const branchesWithSales = branchesToDisplay.map(branch => {
                     const branchSales = (appData.departmentSales || []).filter(sale => {
                         const saleBranchId = (sale && sale.branchId && sale.branchId._id) ? sale.branchId._id : sale.branchId;
                         return saleBranchId === branch._id;
@@ -15897,12 +15974,29 @@
                     const totalGST = branchSales.reduce((sum, sale) => sum + (sale.gst || 0), 0);
                     const totalNetSale = totalSaleValue + totalGST;
                     
-                    return { branch, totalNetSale };
+                    return { branch, totalNetSale, totalGrossSale };
                 });
                 
-                // Sort branches by net sale (descending - highest first)
-                branchesWithNetSale.sort((a, b) => b.totalNetSale - a.totalNetSale);
-                branchesToDisplay = branchesWithNetSale.map(item => item.branch);
+                // Sort branches based on selected option
+                if (sortOption !== 'none') {
+                    if (sortOption === 'net-sale-desc') {
+                        // Sort by net sale (descending - highest first)
+                        branchesWithSales.sort((a, b) => b.totalNetSale - a.totalNetSale);
+                    } else if (sortOption === 'net-sale-asc') {
+                        // Sort by net sale (ascending - lowest first)
+                        branchesWithSales.sort((a, b) => a.totalNetSale - b.totalNetSale);
+                    } else if (sortOption === 'gross-sale-desc') {
+                        // Sort by gross sale (descending - highest first)
+                        branchesWithSales.sort((a, b) => b.totalGrossSale - a.totalGrossSale);
+                    } else if (sortOption === 'gross-sale-asc') {
+                        // Sort by gross sale (ascending - lowest first)
+                        branchesWithSales.sort((a, b) => a.totalGrossSale - b.totalGrossSale);
+                    }
+                    branchesToDisplay = branchesWithSales.map(item => item.branch);
+                } else {
+                    // No sort - keep original order
+                    branchesToDisplay = branchesWithSales.map(item => item.branch);
+                }
             }
             
             branchesToDisplay.forEach(branch => {
