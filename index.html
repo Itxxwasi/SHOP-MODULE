@@ -6210,6 +6210,9 @@
                                 <li><a class="dropdown-item" href="#" data-date-range="last15">
                                     <i class="fas fa-calendar me-2"></i>Last 15 Days
                                 </a></li>
+                                <li><a class="dropdown-item" href="#" id="warehouseYesterdaySaleBtn" data-date-range="yesterday">
+                                    <i class="fas fa-calendar-day me-2"></i>Yesterday Sale
+                                </a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li class="dropdown-item-text fw-bold">Custom Date Range:</li>
                                 <li>
@@ -6464,7 +6467,7 @@
                                                 </li>
                                             </ul>
                                             <!-- Hidden input to store selected date range value -->
-                                            <input type="hidden" id="shopDashboardDateRangeFilter" value="currentMonth">
+                                            <input type="hidden" id="shopDashboardDateRangeFilter" value="yesterday">
                                         </div>
                                     </div>
                                     
@@ -12352,9 +12355,41 @@
                 const monthFilterInput = document.getElementById(`${prefix}DashboardMonthFilter`);
             
             // Initialize active state based on default value
-                const defaultDateRange = dateRangeFilterInput?.value || 'currentMonth';
+            const defaultDateRange = dateRangeFilterInput?.value || 'currentMonth';
+            
+            // Special handling for Shop Dashboard with "yesterday" as default
+            if (prefix === 'shop' && defaultDateRange === 'yesterday') {
+                // Calculate yesterday's date
+                const today = new Date();
+                const yesterday = new Date(today);
+                yesterday.setDate(yesterday.getDate() - 1);
+                yesterday.setHours(0, 0, 0, 0);
+                
+                // Format date as YYYY-MM-DD
+                const formatDate = (date) => {
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    return `${year}-${month}-${day}`;
+                };
+                
+                const yesterdayStr = formatDate(yesterday);
+                
+                // Set date inputs to yesterday
+                const dateFromInput = document.getElementById(`${prefix}DashboardTopDateFrom`);
+                const dateToInput = document.getElementById(`${prefix}DashboardTopDateTo`);
+                if (dateFromInput) dateFromInput.value = yesterdayStr;
+                if (dateToInput) dateToInput.value = yesterdayStr;
+                
+                // Set filter to custom so it uses the date inputs
+                dateRangeFilterInput.value = 'custom';
+            }
+            
+            // Update active state for dropdown items
+            const finalDateRange = dateRangeFilterInput?.value || 'currentMonth';
             dateRangeDropdownItems.forEach(item => {
-                if (item.getAttribute('data-date-range') === defaultDateRange) {
+                if (item.getAttribute('data-date-range') === finalDateRange || 
+                    (prefix === 'shop' && finalDateRange === 'custom' && item.getAttribute('data-date-range') === 'yesterday')) {
                     item.classList.add('active');
                 }
             });
@@ -13182,7 +13217,13 @@
                 // Prevent default form submission
                 bulkDeptSalesEntryFormTab2.addEventListener('submit', function(e) {
                     e.preventDefault();
-                    saveBulkDepartmentSalesEntryTab2();
+                    // Immediately disable button to prevent duplicate clicks
+                    const saveBtn = document.getElementById('saveBulkDeptSalesBtnTab2');
+                    if (saveBtn && !saveBtn.disabled) {
+                        saveBulkDepartmentSalesEntryTab2();
+                    } else {
+                        console.log('Save button already disabled, ignoring duplicate submission');
+                    }
                 });
                 
                 // Prevent Enter key from submitting form
@@ -20771,7 +20812,26 @@ sortedBranches.forEach(data => {
         }
         
         // Save Bulk Department Sales Entry Tab 2
+        // Flag to prevent multiple simultaneous saves
+        let isSavingBulkDeptSalesTab2 = false;
+        
         async function saveBulkDepartmentSalesEntryTab2() {
+            // Prevent multiple clicks/saves
+            if (isSavingBulkDeptSalesTab2) {
+                console.log('Save already in progress, ignoring duplicate click');
+                return;
+            }
+            
+            // Get save button
+            const saveBtn = document.getElementById('saveBulkDeptSalesBtnTab2');
+            
+            // Disable button and set saving state
+            isSavingBulkDeptSalesTab2 = true;
+            if (saveBtn) {
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+            }
+            
             const date = document.getElementById('bulkDeptSaleDateTab2').value;
             const branchId = document.getElementById('bulkDeptSaleBranchTab2').value;
             const departmentId = document.getElementById('bulkDeptSaleDepartmentTab2').value;
@@ -20781,18 +20841,36 @@ sortedBranches.forEach(data => {
             if (!branchId || branchId === '') {
                 showNotification('Please select a branch before saving', 'error');
                 document.getElementById('bulkDeptSaleBranchTab2').focus();
+                // Re-enable button on validation error
+                isSavingBulkDeptSalesTab2 = false;
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = '<i class="fas fa-save me-2"></i>Save Bulk Department Sales';
+                }
                 return;
             }
             
             if (!date) {
                 showNotification('Please select a date before saving', 'error');
                 document.getElementById('bulkDeptSaleDateTab2').focus();
+                // Re-enable button on validation error
+                isSavingBulkDeptSalesTab2 = false;
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = '<i class="fas fa-save me-2"></i>Save Bulk Department Sales';
+                }
                 return;
             }
             
             if (!departmentId || departmentId === '') {
                 showNotification('Please select a department before saving', 'error');
                 document.getElementById('bulkDeptSaleDepartmentTab2').focus();
+                // Re-enable button on validation error
+                isSavingBulkDeptSalesTab2 = false;
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = '<i class="fas fa-save me-2"></i>Save Bulk Department Sales';
+                }
                 return;
             }
             
@@ -20841,16 +20919,22 @@ sortedBranches.forEach(data => {
             
             if (!hasValidData) {
                 showNotification('Please enter at least one sub-department with Gross Sale greater than 0', 'error');
+                // Re-enable button on validation error
+                isSavingBulkDeptSalesTab2 = false;
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = '<i class="fas fa-save me-2"></i>Save Bulk Department Sales';
+                }
                 return;
             }
             
-            // If editing a single sale, update it instead of creating new ones
-            if (editSaleId && salesData.length === 1) {
-                try {
+            try {
+                // If editing a single sale, update it instead of creating new ones
+                if (editSaleId && salesData.length === 1) {
                     await api.updateDepartmentSale(editSaleId, salesData[0]);
                     showNotification('Department sale updated successfully!', 'success');
                     
-                    // Reset form and edit mode
+                    // Clear form immediately after successful save
                     resetBulkDeptSalesFormTab2();
                     
                     // Refresh department sales list if visible
@@ -20862,63 +20946,95 @@ sortedBranches.forEach(data => {
                     if (document.getElementById('dashboard-section').classList.contains('active')) {
                         loadDashboard();
                     }
-                } catch (error) {
-                    console.error('Error updating department sale:', error);
-                    showNotification('Failed to update department sale: ' + (error.message || 'Unknown error'), 'error');
+                } else {
+                    // Save all sales entries one by one to handle errors better (for bulk creation)
+                    let successCount = 0;
+                    let errorCount = 0;
+                    const errors = [];
+                    
+                    for (let i = 0; i < salesData.length; i++) {
+                        try {
+                            await api.createDepartmentSale(salesData[i]);
+                            successCount++;
+                        } catch (error) {
+                            errorCount++;
+                            errors.push(`Entry ${i + 1}: ${error.message || 'Unknown error'}`);
+                            console.error(`Error saving entry ${i + 1}:`, error);
+                        }
+                    }
+                    
+                    if (errorCount === 0) {
+                        showNotification(`Successfully saved ${successCount} sub-department sales entry(ies)!`, 'success');
+                        
+                        // Clear form immediately after successful save
+                        resetBulkDeptSalesFormTab2();
+                        
+                        // Refresh department sales list if visible
+                        if (document.getElementById('deptSalesListSection') && document.getElementById('deptSalesListSection').style.display !== 'none') {
+                            loadDeptSalesList();
+                        }
+                    } else if (successCount > 0) {
+                        showNotification(`Saved ${successCount} entries, but ${errorCount} failed. Check console for details.`, 'warning');
+                        console.error('Failed entries:', errors);
+                        
+                        // Clear form even if some failed (partial success)
+                        resetBulkDeptSalesFormTab2();
+                    } else {
+                        showNotification(`Failed to save all entries. First error: ${errors[0] || 'Unknown error'}`, 'error');
+                        console.error('All entries failed:', errors);
+                    }
                 }
-                return;
-            }
-            
-            // Save all sales entries one by one to handle errors better (for bulk creation)
-            let successCount = 0;
-            let errorCount = 0;
-            const errors = [];
-            
-            for (let i = 0; i < salesData.length; i++) {
-                try {
-                    await api.createDepartmentSale(salesData[i]);
-                    successCount++;
-                } catch (error) {
-                    errorCount++;
-                    errors.push(`Entry ${i + 1}: ${error.message || 'Unknown error'}`);
-                    console.error(`Error saving entry ${i + 1}:`, error);
+            } catch (error) {
+                console.error('Error saving bulk department sales:', error);
+                showNotification('Failed to save: ' + (error.message || 'Unknown error'), 'error');
+            } finally {
+                // Always re-enable button and reset state after save completes
+                isSavingBulkDeptSalesTab2 = false;
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = '<i class="fas fa-save me-2"></i>Save Bulk Department Sales';
                 }
-            }
-            
-            if (errorCount === 0) {
-                showNotification(`Successfully saved ${successCount} sub-department sales entry(ies)!`, 'success');
-                
-                // Reset form
-                resetBulkDeptSalesFormTab2();
-                
-                // Refresh department sales list if visible
-                if (document.getElementById('deptSalesListSection') && document.getElementById('deptSalesListSection').style.display !== 'none') {
-                    loadDeptSalesList();
-                }
-            } else if (successCount > 0) {
-                showNotification(`Saved ${successCount} entries, but ${errorCount} failed. Check console for details.`, 'warning');
-                console.error('Failed entries:', errors);
-            } else {
-                showNotification(`Failed to save all entries. First error: ${errors[0] || 'Unknown error'}`, 'error');
-                console.error('All entries failed:', errors);
             }
         }
         
         // Reset Bulk Department Sales Form Tab 2
         function resetBulkDeptSalesFormTab2() {
+            // Clear form data
             document.getElementById('bulkDeptSalesEntryFormTab2').reset();
             document.getElementById('editDeptSaleIdTab2').value = '';
+            
+            // Set today's date
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('bulkDeptSaleDateTab2').value = today;
-            document.getElementById('bulkSubDepartmentsContainerTab2').innerHTML = '<div class="alert alert-info"><i class="fas fa-info-circle me-2"></i>Please select a branch and department to load sub-departments</div>';
             
-            // Reset button text and style
+            // Clear branch and department selections
+            const branchSelect = document.getElementById('bulkDeptSaleBranchTab2');
+            const deptSelect = document.getElementById('bulkDeptSaleDepartmentTab2');
+            if (branchSelect) branchSelect.value = '';
+            if (deptSelect) deptSelect.value = '';
+            
+            // Clear sub-departments container and table
+            const subDeptContainer = document.getElementById('bulkSubDepartmentsContainerTab2');
+            const subDeptTableBody = document.getElementById('bulkSubDeptTableBodyTab2');
+            if (subDeptContainer) {
+                subDeptContainer.innerHTML = '<div class="alert alert-info"><i class="fas fa-info-circle me-2"></i>Please select a branch and department to load sub-departments</div>';
+            }
+            if (subDeptTableBody) {
+                subDeptTableBody.innerHTML = '';
+            }
+            
+            // Reset button text, style, and state
             const saveBtn = document.getElementById('saveBulkDeptSalesBtnTab2');
             if (saveBtn) {
+                saveBtn.disabled = false;
                 saveBtn.textContent = 'Save Bulk Department Sales';
+                saveBtn.innerHTML = '<i class="fas fa-save me-2"></i>Save Bulk Department Sales';
                 saveBtn.classList.remove('btn-warning');
                 saveBtn.classList.add('btn-primary');
             }
+            
+            // Reset saving flag
+            isSavingBulkDeptSalesTab2 = false;
         }
         
         // Load Department Sales List
@@ -21253,8 +21369,8 @@ sortedBranches.forEach(data => {
                 if (grandTotalNetSale > 0) {
                     grandTotalSection.style.display = 'block';
                     grandTotalSection.innerHTML = `
-                        <div class="card border-0 shadow-lg" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                            <div class="card-header text-white" style="background: rgba(0,0,0,0.2); border: none;">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-header bg-info text-white">
                                 <div class="row align-items-center">
                                     <div class="col-md-8">
                                         <h5 class="mb-0"><i class="fas fa-calculator me-2"></i>Grand Total (All Departments)</h5>
@@ -21264,23 +21380,23 @@ sortedBranches.forEach(data => {
                                     </div>
                                 </div>
                             </div>
-                            <div class="card-body text-white">
+                            <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-3 text-center mb-3">
-                                        <small class="d-block opacity-75 mb-1">Gross Sale</small>
-                                        <strong class="fs-4">${grandTotalGrossSale.toLocaleString()}</strong>
+                                        <small class="d-block text-muted mb-1">Gross Sale</small>
+                                        <strong class="fs-4 text-dark">${grandTotalGrossSale.toLocaleString()}</strong>
                                     </div>
                                     <div class="col-md-3 text-center mb-3">
-                                        <small class="d-block opacity-75 mb-1">Discount</small>
-                                        <strong class="fs-4">${grandTotalDiscount.toLocaleString()}</strong>
+                                        <small class="d-block text-muted mb-1">Discount</small>
+                                        <strong class="fs-4 text-dark">${grandTotalDiscount.toLocaleString()}</strong>
                                     </div>
                                     <div class="col-md-3 text-center mb-3">
-                                        <small class="d-block opacity-75 mb-1">Return</small>
-                                        <strong class="fs-4">${grandTotalReturn.toLocaleString()}</strong>
+                                        <small class="d-block text-muted mb-1">Return</small>
+                                        <strong class="fs-4 text-dark">${grandTotalReturn.toLocaleString()}</strong>
                                     </div>
                                     <div class="col-md-3 text-center mb-3">
-                                        <small class="d-block opacity-75 mb-1">Net Sale</small>
-                                        <strong class="fs-3" style="text-shadow: 0 2px 4px rgba(0,0,0,0.3);">${grandTotalNetSale.toLocaleString()}</strong>
+                                        <small class="d-block text-muted mb-1">Net Sale</small>
+                                        <strong class="fs-3 text-primary">${grandTotalNetSale.toLocaleString()}</strong>
                                     </div>
                                 </div>
                             </div>
