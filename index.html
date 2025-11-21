@@ -19632,7 +19632,22 @@ sortedBranches.forEach(data => {
             };
             
             api.createDepartment(departmentData).then(() => {
-                bootstrap.Modal.getInstance(document.getElementById('addDepartmentModal')).hide();
+                const modalElement = document.getElementById('addDepartmentModal');
+                const modalInstance = bootstrap.Modal.getInstance(modalElement);
+                if (modalInstance) {
+                    modalInstance.hide();
+                }
+                
+                // Clean up any modal backdrops that might remain
+                setTimeout(() => {
+                    const backdrops = document.querySelectorAll('.modal-backdrop');
+                    backdrops.forEach(backdrop => backdrop.remove());
+                    // Also remove modal-open class from body if it exists
+                    document.body.classList.remove('modal-open');
+                    document.body.style.overflow = '';
+                    document.body.style.paddingRight = '';
+                }, 100);
+                
                 document.getElementById('departmentForm').reset();
                 const branchSelect = document.getElementById('departmentBranchId');
                 if (branchSelect) branchSelect.disabled = false;
@@ -19732,7 +19747,22 @@ sortedBranches.forEach(data => {
             };
             
             api.updateDepartment(id, departmentData).then(() => {
-                bootstrap.Modal.getInstance(document.getElementById('addDepartmentModal')).hide();
+                const modalElement = document.getElementById('addDepartmentModal');
+                const modalInstance = bootstrap.Modal.getInstance(modalElement);
+                if (modalInstance) {
+                    modalInstance.hide();
+                }
+                
+                // Clean up any modal backdrops that might remain
+                setTimeout(() => {
+                    const backdrops = document.querySelectorAll('.modal-backdrop');
+                    backdrops.forEach(backdrop => backdrop.remove());
+                    // Also remove modal-open class from body if it exists
+                    document.body.classList.remove('modal-open');
+                    document.body.style.overflow = '';
+                    document.body.style.paddingRight = '';
+                }, 100);
+                
                 document.getElementById('departmentForm').reset();
                 const branchSelect = document.getElementById('departmentBranchId');
                 if (branchSelect) branchSelect.disabled = false;
@@ -19910,7 +19940,22 @@ sortedBranches.forEach(data => {
             };
             
             api.createSubDepartment(subDepartmentData).then(() => {
-                bootstrap.Modal.getInstance(document.getElementById('addSubDepartmentModal')).hide();
+                const modalElement = document.getElementById('addSubDepartmentModal');
+                const modalInstance = bootstrap.Modal.getInstance(modalElement);
+                if (modalInstance) {
+                    modalInstance.hide();
+                }
+                
+                // Clean up any modal backdrops that might remain
+                setTimeout(() => {
+                    const backdrops = document.querySelectorAll('.modal-backdrop');
+                    backdrops.forEach(backdrop => backdrop.remove());
+                    // Also remove modal-open class from body if it exists
+                    document.body.classList.remove('modal-open');
+                    document.body.style.overflow = '';
+                    document.body.style.paddingRight = '';
+                }, 100);
+                
                 document.getElementById('subDepartmentForm').reset();
                 const departmentSelect = document.getElementById('subDepartmentDepartmentId');
                 if (departmentSelect) {
@@ -20132,7 +20177,22 @@ sortedBranches.forEach(data => {
             };
             
             api.updateSubDepartment(id, subDepartmentData).then(() => {
-                bootstrap.Modal.getInstance(document.getElementById('addSubDepartmentModal')).hide();
+                const modalElement = document.getElementById('addSubDepartmentModal');
+                const modalInstance = bootstrap.Modal.getInstance(modalElement);
+                if (modalInstance) {
+                    modalInstance.hide();
+                }
+                
+                // Clean up any modal backdrops that might remain
+                setTimeout(() => {
+                    const backdrops = document.querySelectorAll('.modal-backdrop');
+                    backdrops.forEach(backdrop => backdrop.remove());
+                    // Also remove modal-open class from body if it exists
+                    document.body.classList.remove('modal-open');
+                    document.body.style.overflow = '';
+                    document.body.style.paddingRight = '';
+                }, 100);
+                
                 document.getElementById('subDepartmentForm').reset();
                 const departmentSelect = document.getElementById('subDepartmentDepartmentId');
                 if (departmentSelect) {
@@ -20830,6 +20890,18 @@ sortedBranches.forEach(data => {
                 // Sort sales by date (newest first)
                 const sortedSales = [...salesData].sort((a, b) => new Date(b.date) - new Date(a.date));
                 
+                // Calculate grand totals from all sales data (not paginated)
+                const grandTotals = {
+                    grossSale: 0,
+                    discountAmount: 0,
+                    netSale: 0
+                };
+                salesData.forEach(sale => {
+                    grandTotals.grossSale += sale.grossSale || 0;
+                    grandTotals.discountAmount += sale.discountAmount || 0;
+                    grandTotals.netSale += sale.netSale || 0;
+                });
+                
                 // Load department-wise summary (using all filtered data, not paginated)
                 loadDepartmentSummary(salesData);
                 
@@ -20841,8 +20913,8 @@ sortedBranches.forEach(data => {
                 // Load department sales invoices (card view)
                 loadDeptSalesInvoices(paginatedSales);
                 
-                // Load department sales table (table view)
-                loadDeptSalesTable(paginatedSales);
+                // Load department sales table (table view) with grand totals
+                loadDeptSalesTable(paginatedSales, grandTotals);
                 
                 // Update pagination
                 updatePagination(sortedSales.length, page, perPage, 'deptSalesInvoicesPagination', loadDeptSalesList);
@@ -21088,7 +21160,7 @@ sortedBranches.forEach(data => {
         }
         
         // Load Department Sales Table
-        function loadDeptSalesTable(sales) {
+        function loadDeptSalesTable(sales, grandTotals = null) {
             const tableBody = document.getElementById('deptSalesListTableBody');
             if (!tableBody) return;
             
@@ -21124,6 +21196,23 @@ sortedBranches.forEach(data => {
                 `;
                 tableBody.appendChild(row);
             });
+            
+            // Add grand total row if grandTotals are provided
+            if (grandTotals) {
+                const grandTotalRow = document.createElement('tr');
+                grandTotalRow.className = 'table-info';
+                grandTotalRow.style.fontWeight = 'bold';
+                grandTotalRow.style.backgroundColor = '#d1ecf1';
+                grandTotalRow.innerHTML = `
+                    <td style="display: none;"></td>
+                    <td colspan="4" class="text-end"><strong>Grand Total (All Departments):</strong></td>
+                    <td class="text-end"><strong>${grandTotals.grossSale.toLocaleString()}</strong></td>
+                    <td class="text-end"><strong>${grandTotals.discountAmount.toLocaleString()}</strong></td>
+                    <td class="text-end text-success"><strong>${grandTotals.netSale.toLocaleString()}</strong></td>
+                    <td></td>
+                `;
+                tableBody.appendChild(grandTotalRow);
+            }
         }
         
         // Edit Department Sale - Make globally accessible
