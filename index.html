@@ -6053,6 +6053,12 @@
                                                 <span class="sidebar-text">Date-Wise Sales</span>
                                             </a>
                                         </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" href="#" data-section="reports" data-report="payment-reports">
+                                                <i class="fas fa-circle" style="font-size: 6px;"></i>
+                                                <span class="sidebar-text">Payment Reports</span>
+                                            </a>
+                                        </li>
                                     </ul>
                                 </li>
                                 <!-- Shop Reports Section -->
@@ -11528,12 +11534,13 @@
             'payment-reports': ['payment-reports'],
             
             // Reports
-            'reports': ['sales-report', 'sales-comparison-report', 'datewise-sales-report', 'department-wise-report', 'sub-department-wise-report', 'department-wise-sale-comparison', 'branch-wise-sale-comparison'],
+            'reports': ['sales-report', 'sales-comparison-report', 'datewise-sales-report', 'payment-reports', 'department-wise-report', 'sub-department-wise-report', 'department-wise-sale-comparison', 'branch-wise-sale-comparison'],
             
             // Individual report permissions
             'sales-report': ['sales-report'],
             'sales-comparison-report': ['sales-comparison-report'],
             'datewise-sales-report': ['datewise-sales-report'],
+            'payment-reports': ['payment-reports'],
             'department-wise-report': ['department-wise-report'],
             'sub-department-wise-report': ['sub-department-wise-report'],
             'department-wise-sale-comparison': ['department-wise-sale-comparison'],
@@ -11606,11 +11613,11 @@
                 // Skip reports menu toggle and submenu toggles (handled separately)
                 if (link.id === 'reportsMenuToggle' || link.id === 'warehouseReportsToggle' || link.id === 'shopReportsToggle') {
                     // Show reports menu if user has any report permission
-                    const reportPermissions = ['sales-report', 'sales-comparison-report', 'datewise-sales-report', 'department-wise-report', 'sub-department-wise-report', 'department-wise-sale-comparison', 'branch-wise-sale-comparison'];
+                    const reportPermissions = ['sales-report', 'sales-comparison-report', 'datewise-sales-report', 'payment-reports', 'department-wise-report', 'sub-department-wise-report', 'department-wise-sale-comparison', 'branch-wise-sale-comparison'];
                     const hasAnyReportPermission = reportPermissions.some(perm => permissions.includes(perm)) || isAdmin;
                     
                     if (link.id === 'warehouseReportsToggle') {
-                        const warehouseReportPermissions = ['sales-report', 'sales-comparison-report', 'datewise-sales-report'];
+                        const warehouseReportPermissions = ['sales-report', 'sales-comparison-report', 'datewise-sales-report', 'payment-reports'];
                         const hasWarehousePermission = warehouseReportPermissions.some(perm => permissions.includes(perm)) || isAdmin;
                         if (navItem) navItem.style.display = hasWarehousePermission ? 'block' : 'none';
                         if (hasWarehousePermission) sectionVisibility['reportsSectionItems'] = true;
@@ -11628,7 +11635,13 @@
                 
                 // Handle report submenu items
                 if (section === 'reports' && reportTab) {
-                    const hasReportPermission = hasPermission(reportTab, permissions);
+                    // For payment-reports, check permission directly (allows admin bypass for visibility)
+                    let hasReportPermission = false;
+                    if (reportTab === 'payment-reports') {
+                        hasReportPermission = isAdmin || permissions.includes('payment-reports');
+                    } else {
+                        hasReportPermission = hasPermission(reportTab, permissions);
+                    }
                     if (navItem) navItem.style.display = hasReportPermission ? 'block' : 'none';
                     if (hasReportPermission && parentSection) {
                         sectionVisibility[parentSection] = true;
@@ -11697,21 +11710,21 @@
             });
             
             // Hide/show Payment Voucher section tabs based on permissions
-            // Supplier Voucher Tab - requires 'payment-vouchers' permission
+            // Supplier Voucher Tab - requires 'payment-vouchers' permission (admin bypass allowed)
             const supplierVoucherTab = document.getElementById('supplier-voucher-tab');
             if (supplierVoucherTab && supplierVoucherTab.parentElement) {
-                const hasSupplierVoucherPermission = permissions.includes('payment-vouchers');
+                const hasSupplierVoucherPermission = isAdmin || permissions.includes('payment-vouchers');
                 supplierVoucherTab.parentElement.style.display = hasSupplierVoucherPermission ? '' : 'none';
             }
             
-            // Category Voucher Tab - requires 'category-voucher' permission
+            // Category Voucher Tab - requires 'category-voucher' permission (admin bypass allowed)
             const categoryVoucherTab = document.getElementById('category-voucher-tab');
             if (categoryVoucherTab && categoryVoucherTab.parentElement) {
-                const hasCategoryVoucherPermission = permissions.includes('category-voucher');
+                const hasCategoryVoucherPermission = isAdmin || permissions.includes('category-voucher');
                 categoryVoucherTab.parentElement.style.display = hasCategoryVoucherPermission ? '' : 'none';
                 
                 // If category voucher tab is hidden but supplier voucher is visible, make supplier tab active
-                if (!hasCategoryVoucherPermission && supplierVoucherTab && permissions.includes('payment-vouchers')) {
+                if (!hasCategoryVoucherPermission && supplierVoucherTab && (isAdmin || permissions.includes('payment-vouchers'))) {
                     supplierVoucherTab.classList.add('active');
                     const supplierContent = document.getElementById('supplier-voucher-content');
                     if (supplierContent) supplierContent.classList.add('show', 'active');
@@ -11722,21 +11735,21 @@
             }
             
             // Payment voucher list tabs inside payment-voucher-list section (voucherListTabs)
-            // Check for supplier voucher list tab
+            // Check for supplier voucher list tab (admin bypass allowed)
             const supplierVoucherListTab = document.querySelector('#voucherListTabs [data-bs-target="#supplier-voucher-list-content"]');
             if (supplierVoucherListTab && supplierVoucherListTab.parentElement) {
-                const hasPaymentVoucherListPermission = permissions.includes('payment-voucher-list');
+                const hasPaymentVoucherListPermission = isAdmin || permissions.includes('payment-voucher-list');
                 supplierVoucherListTab.parentElement.style.display = hasPaymentVoucherListPermission ? '' : 'none';
             }
             
-            // Check for category voucher list tab (inside voucher list section)
+            // Check for category voucher list tab (inside voucher list section) (admin bypass allowed)
             const categoryVoucherListTabBtn = document.querySelector('#voucherListTabs [data-bs-target="#category-voucher-list-content"]');
             if (categoryVoucherListTabBtn && categoryVoucherListTabBtn.parentElement) {
-                const hasCategoryVoucherListPermission = permissions.includes('category-voucher-list');
+                const hasCategoryVoucherListPermission = isAdmin || permissions.includes('category-voucher-list');
                 categoryVoucherListTabBtn.parentElement.style.display = hasCategoryVoucherListPermission ? '' : 'none';
                 
                 // If category voucher list tab is hidden but supplier voucher list is visible, make supplier tab active
-                if (!hasCategoryVoucherListPermission && supplierVoucherListTab && permissions.includes('payment-voucher-list')) {
+                if (!hasCategoryVoucherListPermission && supplierVoucherListTab && (isAdmin || permissions.includes('payment-voucher-list'))) {
                     supplierVoucherListTab.classList.add('active');
                     const supplierListContent = document.getElementById('supplier-voucher-list-content');
                     if (supplierListContent) supplierListContent.classList.add('show', 'active');
@@ -11769,9 +11782,9 @@
                 const requiredPerms = reportTabPermissions[tabId];
                 
                 if (requiredPerms) {
-                    // Payment reports: no admin bypass
+                    // All reports: admin bypass allowed
                     if (tabId === 'payment-reports') {
-                        const hasPermission = permissions.includes('payment-reports');
+                        const hasPermission = isAdmin || permissions.includes('payment-reports');
                         tab.style.display = hasPermission ? 'flex' : 'none';
                     } else {
                         // Other reports: admin bypass allowed
