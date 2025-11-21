@@ -15761,6 +15761,29 @@
                 branchesToDisplay = branchesToDisplay.filter(branch => branch._id === branchFilter);
             }
             
+            // For shop dashboard, calculate net sale for each branch and sort by net sale (descending)
+            if (tabPrefix === 'shop') {
+                const branchesWithNetSale = branchesToDisplay.map(branch => {
+                    const branchSales = (appData.departmentSales || []).filter(sale => {
+                        const saleBranchId = (sale && sale.branchId && sale.branchId._id) ? sale.branchId._id : sale.branchId;
+                        return saleBranchId === branch._id;
+                    });
+                    
+                    const totalGrossSale = branchSales.reduce((sum, sale) => sum + (sale.grossSale || 0), 0);
+                    const totalDiscountAmount = branchSales.reduce((sum, sale) => sum + (sale.discountAmount || 0), 0);
+                    const totalReturn = branchSales.reduce((sum, sale) => sum + (sale.returnAmount || 0), 0);
+                    const totalSaleValue = totalGrossSale - totalDiscountAmount - totalReturn;
+                    const totalGST = branchSales.reduce((sum, sale) => sum + (sale.gst || 0), 0);
+                    const totalNetSale = totalSaleValue + totalGST;
+                    
+                    return { branch, totalNetSale };
+                });
+                
+                // Sort branches by net sale (descending - highest first)
+                branchesWithNetSale.sort((a, b) => b.totalNetSale - a.totalNetSale);
+                branchesToDisplay = branchesWithNetSale.map(item => item.branch);
+            }
+            
             branchesToDisplay.forEach(branch => {
                 if (tabPrefix === 'shop') {
                     // Shop Dashboard: Use department sales
@@ -15937,7 +15960,10 @@
                                     <!-- Department Breakdown (Hidden) -->
                                     <div class="mt-3" id="categoryDetails-${branch._id}" style="display: none;">
                                         <div class="row g-3">
-                                            ${Object.entries(departmentData).map(([deptId, dept], index) => {
+                                            ${Object.entries(departmentData)
+                                                .map(([deptId, dept]) => ({ deptId, dept }))
+                                                .sort((a, b) => (b.dept.netSale || 0) - (a.dept.netSale || 0))
+                                                .map(({ deptId, dept }, index) => {
                                                 const txnCount = branchSales.filter(sale => {
                                                     const saleDepartmentId = (sale && sale.departmentId && sale.departmentId._id) ? sale.departmentId._id : sale.departmentId;
                                                     return saleDepartmentId === deptId;
@@ -16033,7 +16059,10 @@
                                                                     <i class="fas fa-layer-group me-2"></i>Sub-Departments (${subDeptCount})
                                                                 </h6>
                                                                 <div class="row g-2">
-                                                                    ${Object.entries(dept.subDepartments || {}).map(([subDeptId, subDept]) => {
+                                                                    ${Object.entries(dept.subDepartments || {})
+                                                                        .map(([subDeptId, subDept]) => ({ subDeptId, subDept }))
+                                                                        .sort((a, b) => (b.subDept.netSale || 0) - (a.subDept.netSale || 0))
+                                                                        .map(({ subDeptId, subDept }) => {
                                                                         console.log(`Rendering sub-dept: ${subDept.name}, Net Sale: ${subDept.netSale}`);
                                                                         return `
                                                                         <div class="col-12">
