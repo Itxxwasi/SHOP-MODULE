@@ -15997,6 +15997,22 @@
                     // No sort - keep original order
                     branchesToDisplay = branchesWithSales.map(item => item.branch);
                 }
+            } else if (tabPrefix === 'warehouse') {
+                // For warehouse dashboard, sort branches by total sales (descending - highest first)
+                const branchesWithSales = branchesToDisplay.map(branch => {
+                    const branchSales = (appData.sales || []).filter(sale => {
+                        const saleBranchId = (sale && sale.branchId && sale.branchId._id) ? sale.branchId._id : sale.branchId;
+                        return saleBranchId === branch._id;
+                    });
+                    
+                    const totalSales = branchSales.reduce((sum, sale) => sum + (sale.total || 0), 0);
+                    
+                    return { branch, totalSales };
+                });
+                
+                // Sort branches by total sales (descending - highest first)
+                branchesWithSales.sort((a, b) => b.totalSales - a.totalSales);
+                branchesToDisplay = branchesWithSales.map(item => item.branch);
             }
             
             branchesToDisplay.forEach(branch => {
@@ -19114,18 +19130,18 @@ sortedBranches.forEach(data => {
                 
                 const branchGrandTotalRow = document.createElement('tr');
                 branchGrandTotalRow.className = 'branch-total-row';
-                branchGrandTotalRow.style.backgroundColor = '#f8f9fa';
+                branchGrandTotalRow.style.backgroundColor = '#2c6e8a';
                 branchGrandTotalRow.style.fontWeight = '700';
                 branchGrandTotalRow.innerHTML = `
-                    <td style="background-color: #f8f9fa; font-weight: 700; font-size: 1.05em; white-space: nowrap;">${branch.name} - Grand Total</td>
-                    <td class="text-end" style="background-color: #f8f9fa; font-weight: 700; font-size: 1.05em; white-space: nowrap;">${branchTotalGrossSale.toLocaleString()}</td>
-                    <td class="text-end" style="background-color: #f8f9fa; font-weight: 700; font-size: 1.05em; white-space: nowrap;">${branchTotalDiscount.toLocaleString()}</td>
-                    <td class="text-end" style="background-color: #f8f9fa; font-weight: 700; font-size: 1.05em; white-space: nowrap;">${branchDiscountPercent.toFixed(2)}%</td>
-                    <td class="text-end" style="background-color: #f8f9fa; font-weight: 700; font-size: 1.05em; white-space: nowrap;">${branchTotalReturn.toLocaleString()}</td>
-                    <td class="text-end" style="background-color: #f8f9fa; font-weight: 700; font-size: 1.05em; white-space: nowrap;">${branchSaleValue.toLocaleString()}</td>
-                    <td class="text-end" style="background-color: #f8f9fa; font-weight: 700; font-size: 1.05em; white-space: nowrap;">${branchTotalGST.toLocaleString()}</td>
-                    <td class="text-end" style="background-color: #f8f9fa; font-weight: 700; font-size: 1.05em; color: #2c6e8a; white-space: nowrap;">${branchTotalNetSale.toLocaleString()}</td>
-                    <td class="text-end" style="background-color: #f8f9fa; font-weight: 700; font-size: 1.05em; white-space: nowrap;">${Math.round(branchDailyAverage).toLocaleString()}</td>
+                    <td style="background-color: #2c6e8a; color: white; font-weight: 700; font-size: 1.05em; white-space: nowrap;">${branch.name} - Grand Total</td>
+                    <td class="text-end" style="background-color: #2c6e8a; color: white; font-weight: 700; font-size: 1.05em; white-space: nowrap;">${branchTotalGrossSale.toLocaleString()}</td>
+                    <td class="text-end" style="background-color: #2c6e8a; color: white; font-weight: 700; font-size: 1.05em; white-space: nowrap;">${branchTotalDiscount.toLocaleString()}</td>
+                    <td class="text-end" style="background-color: #2c6e8a; color: white; font-weight: 700; font-size: 1.05em; white-space: nowrap;">${branchDiscountPercent.toFixed(2)}%</td>
+                    <td class="text-end" style="background-color: #2c6e8a; color: white; font-weight: 700; font-size: 1.05em; white-space: nowrap;">${branchTotalReturn.toLocaleString()}</td>
+                    <td class="text-end" style="background-color: #2c6e8a; color: white; font-weight: 700; font-size: 1.05em; white-space: nowrap;">${branchSaleValue.toLocaleString()}</td>
+                    <td class="text-end" style="background-color: #2c6e8a; color: white; font-weight: 700; font-size: 1.05em; white-space: nowrap;">${branchTotalGST.toLocaleString()}</td>
+                    <td class="text-end" style="background-color: #2c6e8a; color: white; font-weight: 700; font-size: 1.05em; white-space: nowrap;">${branchTotalNetSale.toLocaleString()}</td>
+                    <td class="text-end" style="background-color: #2c6e8a; color: white; font-weight: 700; font-size: 1.05em; white-space: nowrap;">${Math.round(branchDailyAverage).toLocaleString()}</td>
                 `;
                 branchTableBody.appendChild(branchGrandTotalRow);
                 
@@ -19142,15 +19158,15 @@ sortedBranches.forEach(data => {
                 tablesContainer.appendChild(branchContainer);
             });
             
-            // Add overall grand total table if there's data
+            // Add overall grand total table if there's data (hidden on mobile)
             if (sortedBranches.length > 0 && grandTotalGrossSale > 0) {
                 const grandTotalDiscountPercent = grandTotalGrossSale > 0 ? (grandTotalDiscount / grandTotalGrossSale * 100) : 0;
                 const grandTotalSaleValue = grandTotalGrossSale - grandTotalDiscount - grandTotalReturn;
                 const grandTotalDailyAverage = numberOfDays > 0 ? grandTotalNetSale / numberOfDays : 0;
                 
-                // Create grand total container
+                // Create grand total container (hidden on mobile)
                 const grandTotalContainer = document.createElement('div');
-                grandTotalContainer.className = 'mb-4';
+                grandTotalContainer.className = 'mb-4 d-none d-md-block';
                 
                 // Create scrollable table wrapper for grand total
                 const grandTotalTableWrapper = document.createElement('div');
@@ -19167,7 +19183,7 @@ sortedBranches.forEach(data => {
                 grandTotalRow.className = 'table-warning fw-bold';
                 grandTotalRow.style.backgroundColor = '#fff3cd';
                 grandTotalRow.innerHTML = `
-                    <td class="text-center d-none d-md-table-cell" colspan="1" style="white-space: nowrap;"><strong><i class="fas fa-calculator me-2"></i>Grand Total</strong></td>
+                    <td class="text-center" colspan="1" style="white-space: nowrap;"><strong><i class="fas fa-calculator me-2"></i>Grand Total</strong></td>
                     <td class="text-end" style="white-space: nowrap;"><strong>${grandTotalGrossSale.toLocaleString()}</strong></td>
                     <td class="text-end" style="white-space: nowrap;"><strong>${grandTotalDiscount.toLocaleString()}</strong></td>
                     <td class="text-end" style="white-space: nowrap;"><strong>${grandTotalDiscountPercent.toFixed(2)}%</strong></td>
@@ -27909,17 +27925,17 @@ sortedBranches.forEach(data => {
                     const branchTotalRow = document.createElement('tr');
                     branchTotalRow.className = 'branch-total-row';
                     branchTotalRow.innerHTML = `
-                        <td style="background-color: #f8f9fa; font-weight: 700; padding: 12px 15px;">
+                        <td style="background-color: #2c6e8a; color: white; font-weight: 700; padding: 12px 15px;">
                             <i class="fas fa-calculator me-2"></i>Branch Total: ${branchData.branchName}
                         </td>
-                        <td style="background-color: #f8f9fa; font-weight: 700; text-align: right; padding: 12px 15px;">${branchTotalGrossSale.toLocaleString()}</td>
-                        <td style="background-color: #f8f9fa; font-weight: 700; text-align: right; padding: 12px 15px;">${branchTotalDiscount.toLocaleString()}</td>
-                        <td style="background-color: #f8f9fa; font-weight: 700; text-align: right; padding: 12px 15px;">${branchDiscountPercent.toFixed(2)}%</td>
-                        <td style="background-color: #f8f9fa; font-weight: 700; text-align: right; padding: 12px 15px;">${branchTotalReturn.toLocaleString()}</td>
-                        <td style="background-color: #f8f9fa; font-weight: 700; text-align: right; padding: 12px 15px;">${branchSaleValue.toLocaleString()}</td>
-                        <td style="background-color: #f8f9fa; font-weight: 700; text-align: right; padding: 12px 15px;">${branchTotalGST.toLocaleString()}</td>
-                        <td style="background-color: #f8f9fa; font-weight: 700; text-align: right; padding: 12px 15px;">${branchTotalNetSale.toLocaleString()}</td>
-                        <td style="background-color: #f8f9fa; font-weight: 700; text-align: right; padding: 12px 15px;">${Math.round(branchDailyAverage).toLocaleString()}</td>
+                        <td style="background-color: #2c6e8a; color: white; font-weight: 700; text-align: right; padding: 12px 15px;">${branchTotalGrossSale.toLocaleString()}</td>
+                        <td style="background-color: #2c6e8a; color: white; font-weight: 700; text-align: right; padding: 12px 15px;">${branchTotalDiscount.toLocaleString()}</td>
+                        <td style="background-color: #2c6e8a; color: white; font-weight: 700; text-align: right; padding: 12px 15px;">${branchDiscountPercent.toFixed(2)}%</td>
+                        <td style="background-color: #2c6e8a; color: white; font-weight: 700; text-align: right; padding: 12px 15px;">${branchTotalReturn.toLocaleString()}</td>
+                        <td style="background-color: #2c6e8a; color: white; font-weight: 700; text-align: right; padding: 12px 15px;">${branchSaleValue.toLocaleString()}</td>
+                        <td style="background-color: #2c6e8a; color: white; font-weight: 700; text-align: right; padding: 12px 15px;">${branchTotalGST.toLocaleString()}</td>
+                        <td style="background-color: #2c6e8a; color: white; font-weight: 700; text-align: right; padding: 12px 15px;">${branchTotalNetSale.toLocaleString()}</td>
+                        <td style="background-color: #2c6e8a; color: white; font-weight: 700; text-align: right; padding: 12px 15px;">${Math.round(branchDailyAverage).toLocaleString()}</td>
                     `;
                     deptTableBody.appendChild(branchTotalRow);
                     
@@ -27936,13 +27952,13 @@ sortedBranches.forEach(data => {
                     grandTotalNetSale += branchTotalNetSale;
                 });
                 
-                // Grand total row at the end
+                // Grand total row at the end (hidden on mobile screens)
                 const grandDiscountPercent = grandTotalGrossSale > 0 ? (grandTotalDiscount / grandTotalGrossSale * 100) : 0;
                 const grandSaleValue = grandTotalGrossSale - grandTotalDiscount - grandTotalReturn;
                 const grandDailyAverage = numberOfDays > 0 ? grandTotalNetSale / numberOfDays : 0;
                 
                 const grandTotalRow = document.createElement('tr');
-                grandTotalRow.className = 'grand-total-row';
+                grandTotalRow.className = 'grand-total-row d-none d-md-table-row';
                 grandTotalRow.innerHTML = `
                     <td style="background-color: #2c6e8a; color: white; font-weight: 700; padding: 15px; font-size: 1.1rem;">
                         <i class="fas fa-calculator me-2"></i>Grand Total (All Branches):
